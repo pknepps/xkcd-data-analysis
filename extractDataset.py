@@ -37,7 +37,7 @@ for i in range(1, MAX_COMIC + 1):
             else:
                 comic[attr] = '"' + comic[attr].replace("\n", "\\n").replace('"', "\"").replace(",", "(COMMA)") + '"'
         csv.write(str(comic[attr]) + ", ")
-    csv.write("NA" if "extra_parts" not in comic else str(comic["extra_parts"]))
+    csv.write(("NA" if "extra_parts" not in comic else str(next(iter(comic["extra_parts"])))) + "\n")
     print(str(comic["num"]))
 
 csv.close()

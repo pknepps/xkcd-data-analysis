@@ -1,0 +1,103 @@
+---
+title: "xkcd"
+author: "Preston Knepper and Kevin McCall"
+date: "2024-04-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdution
+
+In this study, we will analyze commonalities and frequencies of various items in the XKCD. XKCD is a web comic written by Randall Munroe, a CNU graduate with a degree in physics. Before writing comics full time, he previously had worked on robotics at NASA.
+
+XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The chances of you being in this class (Math 474) and never seeing an XKCD comic are slim to none.
+
+# The data
+We will be using the tidyverse package throughout this project. We will go ahead and include it now.
+```{r}
+if (!require("tidyverse")) {
+  install.packages("tidyverse")
+}
+library("tidyverse")
+```
+
+The .csv below contains data on every single xkcd comic. Most importantly, the transcript of every comic. It's a good idea to run the python file, extractDataset.py, before viewing this file for the first time, as a comic is posted three times every week. Monroe offers an API for his comic, which only requires the parsing of jsons into a .csv which R can read.
+```{r}
+xkcd <- read.csv("xkcd.csv", quote = "")
+summary(xkcd)
+head(xkcd)
+nrow(xkcd)
+view(xkcd)
+```
+From the summary, we get information on the metadata of the comic. A comic has the following attributes:
+- num: The comic number, this is simply a unique key assigned chronologically.
+- year, month, day: the date the comic was posted. All as integers.
+- title: The title of the comic.
+- safe_title: The title of the comic. A section of this paper will be dedicated to finding differences between the two.
+- transcript: A transcript of this comic. Includes dialog and image descriptions.
+- alt: The alt-text found by mousing over the comic.
+- img: A url to the image of the comic.
+- link: An link to an external site found by clicking the comic. Few comics utilize this.
+- news: News updates. Rare, but typically about upcoming publications.
+- extra_parts: Occasionally, Monroe will post a game, or other type of interactive comic. Information about it will be posted as a json here. For simplicities sake, this attribute contains the first value of said nested json.
+
+# Cleaning the data
+
+The first thing to do is to convert the three separate attributes year, month, day into a single value date_posted. It will also be useful to add a day_of_week attribute, which includes the day of the week the comic was posted. The day of the week will probably be more useful than just the date as the comic is posted regularly on mondays, wednesdays, and fridays.
+
+```{r}
+xkcd_date <- xkcd |> unite(date, month, day, year, sep = "-") |> mutate(date = as.Date(mdy(date))) |> mutate(weekday = wday(date, label = TRUE),.after = date)
+head(xkcd_date)
+```
+This is the only change we are going to make over the whole project. However, much cleaning will be used for each individual analysis.
+
+# Analysis
+## Dates
+
+The first thing we can analyze without any data manipulation is the frequency of comics across each year and weekday.
+```{r}
+# we extract the year from the given date by using format(date), "%y"
+xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar()
+# graph for posts by day of the week
+xkcd_date |> ggplot(aes(weekday)) + geom_bar()
+```
+As we see, the yearly posts are pretty consistent. While 2024 provides no significance (as the year is not complete), 2006 does. We can investigate.
+```{r}
+xkcd_date |> filter(format(date, "%Y") == "2006") |> group_by(date) |> count() |> arrange(desc(n))
+```
+We can see here that Munroe posted 44 comics on January 1, 2006. Which is the day xkcd was started. To quote Munroe at this time, "I was going through old math/sketching graph paper notebooks and didn't want to lose some of the work in them, so I started scanning pages. I took the more comic-y ones and put them up on a server I was testing out."
+
+Now to discuss the second graph. While xkcd has had the majority of it's posts on MWF, there are some exceptions. We already know from the previous graph, that 44 comics were posted on 6-1-1, a sunday. Lets look at some of the other dates when this happened.
+```{r}
+xkcd_date_abnormal <- xkcd_date |> filter(weekday %in% c("Sun", "Tue", "Thu", "Sat"), date != "2006-01-01")
+xkcd_date_abnormal |> group_by(weekday) |> count()
+```
+So 3 of the sunday comics were not posted on the first day. Meaning we have 34 abnormal posts. Lets narrow down the time of theses abnormalities a bit further.
+```{r}
+xkcd_date_abnormal |> group_by(format(date, "%Y"), weekday) |> count()
+```
+It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest sake, here are a few of the later comics which were abnormal.
+```{r}
+xkcd_date_abnormal |> filter(format(date, "%Y") > 2018)
+```
+![throw](https://imgs.xkcd.com/comics/throw.png "throw")
+
+![scenario_4](https://imgs.xkcd.com/comics/scenario_4.png "scenario_4")
+
+![eae](https://imgs.xkcd.com/comics/everyones_an_epidemiologist.png "everyones_an_epidemiologist.png")
+
+![checkbox](https://imgs.xkcd.com/comics/checkbox.gif "checkbox")
+
+
+![what_if_2_flowchart](https://imgs.xkcd.com/comics/what_if_2_flowchart.png "What if 2 flowchart")
+
+interestingly enough, all but one of the last 5 comics which were off-schedule were "special" comics (a term we will define later) and/or promotions for Munroe's most recent publication (in these cases, <ins>What if? 2</ins> and <ins>How to</ins> where promoted).
+
+# Sources
+
+- xkcd.com
+- xkcd.com/json.html
+- xkcd.com/about/
