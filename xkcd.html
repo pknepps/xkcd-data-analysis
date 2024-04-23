@@ -357,58 +357,26 @@ display: none;
 </div>
 
 
-<table>
-<colgroup>
-<col width="100%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td align="left"># Introdution</td>
-</tr>
-<tr class="even">
-<td align="left">In this study, we will analyze commonalities and
-frequencies of various items in the XKCD. XKCD is a web comic written by
-Randall Munroe, a CNU graduate with a degree in physics. Before writing
-comics full time, he previously had worked on robotics at NASA.</td>
-</tr>
-<tr class="odd">
-<td align="left">XKCD refers to itself as “A web-comic of romance,
-sarcasm, math, and language”, taking its roots in nerdy humor typically
-about technology, math, physics and science. XKCD is popular in the
-world covered by those topics. The chances of you being in this class
-(Math 474) and never seeing an XKCD comic are slim to none.</td>
-</tr>
-</tbody>
-</table>
+<div id="introdution" class="section level1">
+<h1>Introdution</h1>
+<p>In this study, we will analyze commonalities and frequencies of
+various items in the XKCD. XKCD is a web comic written by Randall
+Munroe, a CNU graduate with a degree in physics. Before writing comics
+full time, he previously had worked on robotics at NASA.</p>
+<p>XKCD refers to itself as “A web-comic of romance, sarcasm, math, and
+language”, taking its roots in nerdy humor typically about technology,
+math, physics and science. XKCD is popular in the world covered by those
+topics. The chances of you being in this class (Math 474) and never
+seeing an XKCD comic are slim to none.</p>
+</div>
 <div id="the-data" class="section level1">
 <h1>The data</h1>
 <p>We will be using the tidyverse package throughout this project. We
 will go ahead and include it now.</p>
 <pre class="r"><code>if (!require(&quot;tidyverse&quot;)) {
   install.packages(&quot;tidyverse&quot;)
-}</code></pre>
-<pre><code>## Loading required package: tidyverse</code></pre>
-<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.2.2</code></pre>
-<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.2.2</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;stringr&#39; was built under R version 4.2.2</code></pre>
-<pre><code>## Warning: package &#39;forcats&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.4     ✔ readr     2.1.5
-## ✔ forcats   1.0.0     ✔ stringr   1.5.0
-## ✔ ggplot2   3.5.0     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
-## ✔ purrr     1.0.1</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(&quot;tidyverse&quot;)</code></pre>
+}
+library(&quot;tidyverse&quot;)</code></pre>
 <p>The .csv below contains data on every single xkcd comic. Most
 importantly, the transcript of every comic. It’s a good idea to run the
 python file, extractDataset.py, before viewing this file for the first
@@ -416,29 +384,7 @@ time, as a comic is posted three times every week. Monroe offers an API
 for his comic, which only requires the parsing of jsons into a .csv
 which R can read.</p>
 <pre class="r"><code>xkcd &lt;- read.csv(&quot;xkcd.csv&quot;, quote = &quot;&quot;)
-summary(xkcd)</code></pre>
-<pre><code>##       num             year              month               day           
-##  Min.   :   1.0   Length:2920        Length:2920        Length:2920       
-##  1st Qu.: 731.8   Class :character   Class :character   Class :character  
-##  Median :1461.5   Mode  :character   Mode  :character   Mode  :character  
-##  Mean   :1461.4                                                           
-##  3rd Qu.:2191.2                                                           
-##  Max.   :2921.0                                                           
-##     title            safe_title         transcript            alt           
-##  Length:2920        Length:2920        Length:2920        Length:2920       
-##  Class :character   Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-##                                                                             
-##                                                                             
-##                                                                             
-##      img                link               news           extra_parts       
-##  Length:2920        Length:2920        Length:2920        Length:2920       
-##  Class :character   Class :character   Class :character   Class :character  
-##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
-##                                                                             
-##                                                                             
-## </code></pre>
-<pre class="r"><code>head(xkcd)</code></pre>
+head(xkcd)</code></pre>
 <pre><code>##   num    year month  day                   title              safe_title
 ## 1   1  &quot;2006&quot;   &quot;1&quot;  &quot;1&quot;       &quot;Barrel - Part 1&quot;       &quot;Barrel - Part 1&quot;
 ## 2   2  &quot;2006&quot;   &quot;1&quot;  &quot;1&quot;  &quot;Petit Trees (sketch)&quot;  &quot;Petit Trees (sketch)&quot;
@@ -476,7 +422,6 @@ summary(xkcd)</code></pre>
 ## 6          NA</code></pre>
 <pre class="r"><code>nrow(xkcd)</code></pre>
 <pre><code>## [1] 2920</code></pre>
-<pre class="r"><code>view(xkcd)</code></pre>
 <p>From the summary, we get information on the metadata of the comic. A
 comic has the following attributes: - num: The comic number, this is
 simply a unique key assigned chronologically. - year, month, day: the
@@ -537,8 +482,14 @@ head(xkcd_date)</code></pre>
 ## 4          NA
 ## 5          NA
 ## 6          NA</code></pre>
-<p>This is the only change we are going to make over the whole project.
-However, much cleaning will be used for each individual analysis.</p>
+<p>Another thing to note is that the transcript includes a physical
+description of the comic itself. Sorry blind readers, but we do not care
+for this. We will remove these parts using regex’s. Note Image
+descriptors are wrapped in “[[]]”. Note that the alt text is also
+included here (wrapped in “{{}}”), since there is already a section for
+alt text, we will remove it. The final part to remove are the screenplay
+names (e.g. “Man:”, “Woman:”) as they only indicate who is speaking, and
+are not part of the actual text of the comic.</p>
 </div>
 <div id="analysis" class="section level1">
 <h1>Analysis</h1>
@@ -680,6 +631,15 @@ are a few of the later comics which were abnormal.</p>
 off-schedule were “special” comics (a term we will define later) and/or
 promotions for Munroe’s most recent publication (in these cases,
 <ins>What if? 2</ins> and <ins>How to</ins> where promoted).</p>
+</div>
+<div id="special-comics" class="section level2">
+<h2>Special comics</h2>
+<p>Speaking of special comics. Lets look at some of those. In this
+project, we define special comics as any unusual post that isn’t just a
+comic. The primary form of this are posts where the extra_parts fields
+are not null, that is the comic is an interactive comic. It could be a
+game, a gif, or a movie. We will also be looking at comics with links
+and comics where some news was announced.</p>
 </div>
 </div>
 <div id="sources" class="section level1">

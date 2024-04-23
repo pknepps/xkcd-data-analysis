@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
 ```
 
 # Introdution
@@ -17,7 +18,7 @@ XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", 
 
 # The data
 We will be using the tidyverse package throughout this project. We will go ahead and include it now.
-```{r}
+```{r, message=FALSE}
 if (!require("tidyverse")) {
   install.packages("tidyverse")
 }
@@ -27,10 +28,8 @@ library("tidyverse")
 The .csv below contains data on every single xkcd comic. Most importantly, the transcript of every comic. It's a good idea to run the python file, extractDataset.py, before viewing this file for the first time, as a comic is posted three times every week. Monroe offers an API for his comic, which only requires the parsing of jsons into a .csv which R can read.
 ```{r}
 xkcd <- read.csv("xkcd.csv", quote = "")
-summary(xkcd)
 head(xkcd)
 nrow(xkcd)
-view(xkcd)
 ```
 From the summary, we get information on the metadata of the comic. A comic has the following attributes:
 - num: The comic number, this is simply a unique key assigned chronologically.
@@ -52,7 +51,9 @@ The first thing to do is to convert the three separate attributes year, month, d
 xkcd_date <- xkcd |> unite(date, month, day, year, sep = "-") |> mutate(date = as.Date(mdy(date))) |> mutate(weekday = wday(date, label = TRUE),.after = date)
 head(xkcd_date)
 ```
-This is the only change we are going to make over the whole project. However, much cleaning will be used for each individual analysis.
+Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
+
+
 
 # Analysis
 ## Dates
@@ -95,6 +96,10 @@ xkcd_date_abnormal |> filter(format(date, "%Y") > 2018)
 ![what_if_2_flowchart](https://imgs.xkcd.com/comics/what_if_2_flowchart.png "What if 2 flowchart")
 
 interestingly enough, all but one of the last 5 comics which were off-schedule were "special" comics (a term we will define later) and/or promotions for Munroe's most recent publication (in these cases, <ins>What if? 2</ins> and <ins>How to</ins> where promoted).
+
+## Special comics
+
+Speaking of special comics. Lets look at some of those. In this project, we define special comics as any unusual post that isn't just a comic. The primary form of this are posts where the extra_parts fields are not null, that is the comic is an interactive comic. It could be a game, a gif, or a movie. We will also be looking at comics with links and comics where some news was announced. 
 
 # Sources
 
