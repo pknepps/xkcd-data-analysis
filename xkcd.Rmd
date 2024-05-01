@@ -53,6 +53,14 @@ head(xkcd_date)
 ```
 Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
 
+```{r}
+test <- xkcd_date[1,6]
+test
+str_match_all(test, r"{\[\[([^\]]*)\]\]}")
+dialogue_regex <- regex(r"{^(\w+):([^\n]*)}", multiline = TRUE)
+extract(test, dialogue_regex)
+```
+
 
 
 # Analysis
