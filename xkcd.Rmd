@@ -82,34 +82,46 @@ our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
 # Parsing the Character: Dialog
 ![regex_problems](https://imgs.xkcd.com/comics/perl_problems_2x.png)
 ## pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
-## pain2: 2nd attempt:
+## Realization
+Upon testing with sample data:
+`" \"[[A boy sits in a barrel which is floating in an ocean.]]\\nBoy: I wonder where I'll float next?\\n[[The barrel drifts into the distance. Nothing else can be seen.]]\\n{{Alt: Don't we all.}}\""`
+Upon doing a stringview, I noticed that "\n" was actually "\\n". Thus multiline regexes were useless!
+
+## redemption
+New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
+### Regex negative lookahead
+### Non capturing groups
+`(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*`
+
 
 ```{r}
 view_xkcd_string <- function(strin) {
     str_replace_all(strin, r"{\\n}", "\n") |> str_view()
 }
 
+scenebuilding = r"{\[\[([^\]]*)\]\]}"
+dialog_regex = r"{(?:\\n)?([^:]+): ((?:.(?!\\n[^:]+:))*.)}"
+flatten_whitespace = function()
 
-test <- xkcd_date[1,6]
-test
-str_match_all(test, r"{\[\[([^\]]*)\]\]}")
-dialogue_regex <- regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)
-# dialogue_regex <- regex("^(\\w+):([^\n]*)", multiline = TRUE)
-str_extract_all(test, r"{(?m)^(\w+):([^\n]*)}")
-str_match_all(test, r"{(?m)^(\w+):([^\n]*)}")
+parse_dialog <- function(dialog) {
+    step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
+    step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
+    scene_info = str_extract_all(step1, scenebuilding)
+    step2.1 <- str_remove_all(step1, scenebuilding)
+    step2.2 <- str_replace_all(step2, r"{(?:\\n)+}", r"{\\n}")
+    step2.3 <- str_remove(step2, r"(\s*(?:\\n)+$)")
+    step3 <- str_match_all(step2.3, dialog_regex)
+    step3
+}
+temp <- xkcd |> filter(num == 1519) |> pull(transcript)
+test2 <- temp[1];test2
+str_view(test2)
+temp2 <- xkcd |> filter(num==259) |> pull(transcript)
 
-my_data = 'CAT SAT ON A MOUSE
-CAT
-SAT
-ON A MOUSE'
-cat(my_data)
-my_data
 
-str_extract_all(my_data, r"{(?m)^.AT}")
 
-cat(test)
 
-test
+str_extract_all()
 
 str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
 sample <- xkcd |> sample_n(30) |> pull(transcript)
@@ -117,8 +129,12 @@ sample <- xkcd |> sample_n(30) |> pull(transcript)
 view_xkcd_string(sample[2])
 
 str_view(sample[2])
+str_view(sample[1])
 
 str_match_all(sample, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
+str_match_all(sample[2], r"{(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*}")
+str_match_all(sample[2], r"{(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)}")
+
 # (\w+): ((?:[^\\](?=n))*)
 ```
 
