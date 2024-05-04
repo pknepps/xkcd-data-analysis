@@ -120,9 +120,6 @@ temp2 <- xkcd |> filter(num==259) |> pull(transcript)
 
 
 
-str_extract_all()
-
-str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
 sample <- xkcd |> sample_n(30) |> pull(transcript)
 
 view_xkcd_string(sample[2])
@@ -169,7 +166,7 @@ xkcd_date_abnormal |> group_by(format(date, "%Y"), weekday) |> count()
 ```
 It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest sake, here are a few of the later comics which were abnormal.
 ```{r}
-(xkcd_date_abnormal |> filter(format(date, "%Y") > 2018))[-6]
+(xkcd_date_abnormal |> filter(format(date, "%Y") > 2018))[c(1:4, 8:10)]
 ```
 <p float="left">
     <img src="https://imgs.xkcd.com/comics/throw.png" alt="throw" width="19%"/>
@@ -226,7 +223,7 @@ One thing mentioned in Section 1: The Data is that there didn't seem to be a dif
 
 ```{r}
 xkcd_title_diff <- xkcd_date |> filter(title != safe_title)
-xkcd_title_diff[-6]
+xkcd_title_diff[1:5]
 ```
 One of these comics has an accent above the 'e' in the word 'Clichéd' which may not be readable by some browsers. The other has a blue fill for the word 'House', which once again, may not be readable by some browsers. It is interesting that the answer for this problem was to create an entire new field for this problem, when it could have been handled like the 'extra_parts' item, where only some of the comics even register one (we put in a NA value for all comics which had no 'extra_parts' attribute).
 <p float="left">
