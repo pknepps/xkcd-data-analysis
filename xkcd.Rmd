@@ -112,29 +112,8 @@ parse_dialog <- function(dialog) {
     step3 <- str_match_all(step2.3, dialog_regex)
     step3
 }
-temp <- xkcd |> filter(num == 1519) |> pull(transcript)
-test2 <- temp[1];test2
-str_view(test2)
-temp2 <- xkcd |> filter(num==259) |> pull(transcript)
 
-
-
-
-str_extract_all()
-
-str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
 sample <- xkcd |> sample_n(30) |> pull(transcript)
-
-view_xkcd_string(sample[2])
-
-str_view(sample[2])
-str_view(sample[1])
-
-str_match_all(sample, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
-str_match_all(sample[2], r"{(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*}")
-str_match_all(sample[2], r"{(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)}")
-
-# (\w+): ((?:[^\\](?=n))*)
 ```
 
 
