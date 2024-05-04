@@ -28,21 +28,20 @@ library("tidyverse")
 The .csv below contains data on every single xkcd comic. Most importantly, the transcript of every comic. It's a good idea to run the python file, extractDataset.py, before viewing this file for the first time, as a comic is posted three times every week. Monroe offers an API for his comic, which only requires the parsing of jsons into a .csv which R can read.
 ```{r}
 xkcd <- read.csv("xkcd.csv", quote = "")
-head(xkcd)
 nrow(xkcd)
-xkcd
 ```
 From the summary, we get information on the metadata of the comic. A comic has the following attributes:
-- num: The comic number, this is simply a unique key assigned chronologically.
-- year, month, day: the date the comic was posted. All as integers.
-- title: The title of the comic.
-- safe_title: The title of the comic. A section of this paper will be dedicated to finding differences between the two.
-- transcript: A transcript of this comic. Includes dialog and image descriptions.
-- alt: The alt-text found by mousing over the comic.
-- img: A url to the image of the comic.
-- link: An link to an external site found by clicking the comic. Few comics utilize this.
-- news: News updates. Rare, but typically about upcoming publications.
-- extra_parts: Occasionally, Monroe will post a game, or other type of interactive comic. Information about it will be posted as a json here. For simplicities sake, this attribute contains the first value of said nested json.
+
+* num: The comic number, this is simply a unique key assigned chronologically.
+* year, month, day: the date the comic was posted. All as integers.
+* title: The title of the comic.
+* safe_title: The title of the comic. A section of this paper will be dedicated to finding differences between the two.
+* transcript: A transcript of this comic. Includes dialog and image descriptions.
+* alt: The alt-text found by mousing over the comic.
+* img: A url to the image of the comic.
+* link: An link to an external site found by clicking the comic. Few comics utilize this.
+* news: News updates. Rare, but typically about upcoming publications.
+* extra_parts: Occasionally, Monroe will post a game, or other type of interactive comic. Information about it will be posted as a json here. For simplicities sake, this attribute contains the first value of said nested json.
 
 # Cleaning the data
 
@@ -50,7 +49,6 @@ The first thing to do is to convert the three separate attributes year, month, d
 
 ```{r}
 xkcd_date <- xkcd |> unite(date, month, day, year, sep = "-") |> mutate(date = as.Date(mdy(date))) |> mutate(weekday = wday(date, label = TRUE),.after = date)
-head(xkcd_date)
 ```
 Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
 
@@ -129,15 +127,18 @@ str_match_all(sample, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
 ## Dates
 
 The first thing we can analyze without any data manipulation is the frequency of comics across each year and weekday.
-```{r}
+```{r comicsByYear}
 # we extract the year from the given date by using format(date), "%y"
-xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar()
-# graph for posts by day of the week
-xkcd_date |> ggplot(aes(weekday)) + geom_bar()
+xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Number of Comics Posted by Year")
 ```
+```{r comicsByWeekday}
+# graph for posts by day of the week
+xkcd_date |> ggplot(aes(weekday)) + geom_bar() + labs(title = "Number of Comics Posted by Weekday")
+```
+
 As we see, the yearly posts are pretty consistent. While 2024 provides no significance (as the year is not complete), 2006 does. We can investigate.
 ```{r}
-xkcd_date |> filter(format(date, "%Y") == "2006") |> group_by(date) |> count() |> arrange(desc(n))
+xkcd_date |> filter(format(date, "%Y") == "2006") |> group_by(date) |> count() |> arrange(desc(n)) |> head()
 ```
 We can see here that Munroe posted 44 comics on January 1, 2006. Which is the day xkcd was started. To quote Munroe at this time, "I was going through old math/sketching graph paper notebooks and didn't want to lose some of the work in them, so I started scanning pages. I took the more comic-y ones and put them up on a server I was testing out."
 
@@ -152,34 +153,71 @@ xkcd_date_abnormal |> group_by(format(date, "%Y"), weekday) |> count()
 ```
 It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest sake, here are a few of the later comics which were abnormal.
 ```{r}
-xkcd_date_abnormal |> filter(format(date, "%Y") > 2018)
+(xkcd_date_abnormal |> filter(format(date, "%Y") > 2018))[-6]
 ```
-![throw](https://imgs.xkcd.com/comics/throw.png "throw")
-
-![scenario_4](https://imgs.xkcd.com/comics/scenario_4.png "scenario_4")
-
-![eae](https://imgs.xkcd.com/comics/everyones_an_epidemiologist.png "everyones_an_epidemiologist.png")
-
-![checkbox](https://imgs.xkcd.com/comics/checkbox.gif "checkbox")
-
-
-![what_if_2_flowchart](https://imgs.xkcd.com/comics/what_if_2_flowchart.png "What if 2 flowchart")
-
-interestingly enough, all but one of the last 5 comics which were off-schedule were "special" comics (a term we will define later) and/or promotions for Munroe's most recent publication (in these cases, <ins>What if? 2</ins> and <ins>How to</ins> where promoted).
+<p float="left">
+    <img src="https://imgs.xkcd.com/comics/throw.png" alt="throw" width="19%"/>
+    <img src="https://imgs.xkcd.com/comics/scenario_4.png" alt="scenario_4" width="19%"/>
+    <img src="https://imgs.xkcd.com/comics/everyones_an_epidemiologist.png" alt="everyones_an_epidemiologist" width="19%"/>
+    <img src="https://imgs.xkcd.com/comics/checkbox.gif"alt="checkbox" width="19%"/>
+    <img src="https://imgs.xkcd.com/comics/what_if_2_flowchart.png" alt="What if 2 flowchart" width="19%"/>
+</p> 
+Interestingly enough, all but one of the last 5 comics which were off-schedule were "special" comics (a term we will define later) and/or promotions for Munroe's most recent publication (in these cases, <ins>What if? 2</ins> and <ins>How to</ins> where promoted).
 
 ## Special comics
 
 Speaking of special comics. Lets look at some of those. In this project, we define special comics as any unusual post that isn't just a comic. The primary form of this are posts where the extra_parts fields are not null, that is the comic is an interactive comic. It could be a game, a gif, or a movie. We will also be looking at comics with links and comics where some news was announced. 
 ```{r}
-specialComics <- xkcd |> filter(extra_parts != " NA")
-hasNews <- xkcd |> filter(news != " NA")
-hasLink <- xkcd |> filter(link != " NA")
+specialComics <- xkcd_date |> filter(extra_parts != " NA")
+hasNews <- xkcd_date |> filter(news != " NA")
+hasLink <- xkcd_date |> filter(link != " NA")
+special_union <- union(union(specialComics, hasNews), hasLink)
 nrow(specialComics)
 nrow(hasNews)
 nrow(hasLink)
+nrow(special_union)
+nrow(intersect(specialComics, hasNews))
+nrow(intersect(specialComics, hasLink))
+nrow(intersect(hasNews, hasLink))
+nrow(intersect(specialComics, intersect(hasNews, hasLink)))
 ```
 
-So there are 23 special comics. 54 comics with news announced, and 72 comics which have a link attached to the picture.
+So there are 23 special comics. 54 comics with news announced, and 72 comics which have a link attached to the picture. This totals to 125 special comics (as some comics fall under more than one of the 3 categories). We see that there are 9 comics which are both special and have news, 3 comics which are special and have a link, 12 comics which have both news and a link, and 0 comics with all 3 qualities.
+
+Lets look at how frequent these comics were over time.
+
+```{r}
+special_union |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with Unique Properties by Year")
+```
+```{r, figures-side, fig.show="hold", out.width="33%"}
+specialComics |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Special Comics by Year")
+hasLink |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with Links by Year")
+hasNews |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with News by Year")
+```
+We see here that the majority of the comics with extra features peaked around 2012, and had a spike in 2022. This is true for the individual properties as well, with the exception that news did not have a spike in 2022.
+
+Lets go back a bit to where we analyzed the comics that were posted on Tuesdays and Thursdays. We can try to prove our hypothesis that most of these are our special comics. 
+```{r}
+special_union |> ggplot(aes(weekday)) + geom_bar() + labs(title = "Comics with Unique Properties by Weekday")
+nrow(union(special_union, xkcd_date_abnormal))
+nrow(intersect(special_union, xkcd_date_abnormal)) / nrow(xkcd_date_abnormal)
+nrow(special_union) / nrow(xkcd)
+```
+We see here that the distribution looks fairly similar to the previous weekday graph. However looking at the numbers, we see that there are 145 comics with unique properties that were posted on abnormal days. That's 41.1% of all comics posted on abnormal days. Considering comics with unique properties make up about 4.3% of all comics. This means unique comics make up a significant portion of comics posted on off-days.
+
+## Titles
+One thing mentioned in Section 1: The Data is that there didn't seem to be a difference between 'title' and 'safe_title'. Let's look at that now.
+
+```{r}
+xkcd_title_diff <- xkcd_date |> filter(title != safe_title)
+xkcd_title_diff[-6]
+```
+One of these comics has an accent above the 'e' in the word 'Clichéd' which may not be readable by some browsers. The other has a blue fill for the word 'House', which once again, may not be readable by some browsers. It is interesting that the answer for this problem was to create an entire new field for this problem, when it could have been handled like the 'extra_parts' item, where only some of the comics even register one (we put in a NA value for all comics which had no 'extra_parts' attribute).
+<p float="left">
+    <img src="https://imgs.xkcd.com/comics/cliched_exchanges.png" alt="cliched_exchanges" width="49%"/>
+    <img src="https://imgs.xkcd.com/comics/house_of_pancakes.png" alt="house_of_pancakes" width="49%"/>
+</p> 
+
 # Sources
 
 - xkcd.com
