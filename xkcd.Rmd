@@ -30,6 +30,7 @@ The .csv below contains data on every single xkcd comic. Most importantly, the t
 xkcd <- read.csv("xkcd.csv", quote = "")
 head(xkcd)
 nrow(xkcd)
+xkcd
 ```
 From the summary, we get information on the metadata of the comic. A comic has the following attributes:
 - num: The comic number, this is simply a unique key assigned chronologically.
@@ -100,7 +101,16 @@ interestingly enough, all but one of the last 5 comics which were off-schedule w
 ## Special comics
 
 Speaking of special comics. Lets look at some of those. In this project, we define special comics as any unusual post that isn't just a comic. The primary form of this are posts where the extra_parts fields are not null, that is the comic is an interactive comic. It could be a game, a gif, or a movie. We will also be looking at comics with links and comics where some news was announced. 
+```{r}
+specialComics <- xkcd |> filter(extra_parts != " NA")
+hasNews <- xkcd |> filter(news != " NA")
+hasLink <- xkcd |> filter(link != " NA")
+nrow(specialComics)
+nrow(hasNews)
+nrow(hasLink)
+```
 
+So there are 23 special comics. 54 comics with news announced, and 72 comics which have a link attached to the picture.
 # Sources
 
 - xkcd.com
