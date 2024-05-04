@@ -92,6 +92,9 @@ New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
 #### Non capturing groups
 `(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*`
 
+# Troublesome comics
+785
+
 
 ```{r}
 view_xkcd_string <- function(strin) {
@@ -100,20 +103,40 @@ view_xkcd_string <- function(strin) {
 
 scenebuilding = r"{\[\[([^\]]*)\]\]}"
 dialog_regex = r"{(?:\\n)?([^:]+): ((?:.(?!\\n[^:]+:))*.)}"
-flatten_whitespace = function()
+# THIS IS THE NAME REGEX
+names_regex = r"{(?:\\n)(?=((?:.(?!\\n))+:))[^:]+:}"
 
 parse_dialog <- function(dialog) {
     step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
     step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
     scene_info = str_extract_all(step1, scenebuilding)
     step2.1 <- str_remove_all(step1, scenebuilding)
-    step2.2 <- str_replace_all(step2, r"{(?:\\n)+}", r"{\\n}")
-    step2.3 <- str_remove(step2, r"(\s*(?:\\n)+$)")
-    step3 <- str_match_all(step2.3, dialog_regex)
-    step3
+    step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
+    step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)")
+    character_and_speech <- str_match_all(step2.3, dialog_regex)
+    c(scene_info, character_and_speech)
 }
 
 sample <- xkcd |> sample_n(30) |> pull(transcript)
+str_view(sample[3])
+
+dialog = sample[3]
+step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
+step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
+scene_info = str_extract_all(step1, scenebuilding)
+step2.1 <- str_remove_all(step1, scenebuilding)
+step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
+step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)");
+str_view(step2.3)
+character_and_speech <- str_match_all(step2.3, dialog_regex)
+character_and_speech
+
+
+
+parse_dialog(sample[3])[[2]]
+for (d in sample) {
+    print(parse_dialog(d))
+}
 ```
 
 
