@@ -140,7 +140,10 @@ for (d in sample) {
 ```
 
 
-
+```{r}
+xkcd_transcript_temp <- xkcd_date |> separate_longer_delim(transcript, regex(names_regex)) |> group_by(num, date, weekday, title, safe_title, alt, img, link, news, extra_parts) |> summarise(transcript = paste(transcript, collapse = " "))
+xkcd_transcript_temp
+```
 # Analysis
 ## Dates
 
