@@ -53,12 +53,73 @@ head(xkcd_date)
 ```
 Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
 
+
+Okay, time to tidy transcript.
+
+There are 2 challenges in doing this 
+- scenebuilding is described in [[]]
+- Dialogue is in the format Person: says something (we thought)
+
+
+# Parsing the [[scenebuilding]]
+![iknowregex](https://imgs.xkcd.com/comics/regular_expressions.png)
+This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
+our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
+- \\[\\[
+    - \\[ matches a left square bracket, so this pattern matches [[
+
+- \\([^\\]]*)
+    - The capturing group is created with the ()
+    - Inside the capturing group, we have [^\\]]*
+        -The * matches the the previous item, [^\\]] 0 or more times
+            - This is a negative scanset, matching character that are not contained in it
+            - This will not match the ] character, 
+    - This uses a capturing group to match characters that are not a ]
+
+- \\]\\]
+    - Like the beginning, this matches ]]
+
+# Parsing the Character: Dialog
+![regex_problems](https://imgs.xkcd.com/comics/perl_problems_2x.png)
+## pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
+## pain2: 2nd attempt:
+
 ```{r}
+view_xkcd_string <- function(strin) {
+    str_replace_all(strin, r"{\\n}", "\n") |> str_view()
+}
+
+
 test <- xkcd_date[1,6]
 test
 str_match_all(test, r"{\[\[([^\]]*)\]\]}")
-dialogue_regex <- regex(r"{^(\w+):([^\n]*)}", multiline = TRUE)
-extract(test, dialogue_regex)
+dialogue_regex <- regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)
+# dialogue_regex <- regex("^(\\w+):([^\n]*)", multiline = TRUE)
+str_extract_all(test, r"{(?m)^(\w+):([^\n]*)}")
+str_match_all(test, r"{(?m)^(\w+):([^\n]*)}")
+
+my_data = 'CAT SAT ON A MOUSE
+CAT
+SAT
+ON A MOUSE'
+cat(my_data)
+my_data
+
+str_extract_all(my_data, r"{(?m)^.AT}")
+
+cat(test)
+
+test
+
+str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
+sample <- xkcd |> sample_n(30) |> pull(transcript)
+
+view_xkcd_string(sample[2])
+
+str_view(sample[2])
+
+str_match_all(sample, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")
+# (\w+): ((?:[^\\](?=n))*)
 ```
 
 
