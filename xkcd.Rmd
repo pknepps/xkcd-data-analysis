@@ -60,7 +60,7 @@ There are 2 challenges in doing this
 - Dialogue is in the format Person: says something (we thought)
 
 
-# Parsing the [[scenebuilding]]
+## Parsing the [[scenebuilding]]
 ![iknowregex](https://imgs.xkcd.com/comics/regular_expressions.png)
 This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
 our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
@@ -78,18 +78,18 @@ our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
 - \\]\\]
     - Like the beginning, this matches ]]
 
-# Parsing the Character: Dialog
+## Parsing the Character: Dialog
 ![regex_problems](https://imgs.xkcd.com/comics/perl_problems_2x.png)
-## pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
-## Realization
+### pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
+### Realization
 Upon testing with sample data:
 `" \"[[A boy sits in a barrel which is floating in an ocean.]]\\nBoy: I wonder where I'll float next?\\n[[The barrel drifts into the distance. Nothing else can be seen.]]\\n{{Alt: Don't we all.}}\""`
 Upon doing a stringview, I noticed that "\n" was actually "\\n". Thus multiline regexes were useless!
 
-## redemption
+### redemption
 New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
-### Regex negative lookahead
-### Non capturing groups
+#### Regex negative lookahead
+#### Non capturing groups
 `(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*`
 
 
@@ -213,8 +213,33 @@ One of these comics has an accent above the 'e' in the word 'Clichéd' which may
     <img src="https://imgs.xkcd.com/comics/house_of_pancakes.png" alt="house_of_pancakes" width="49%"/>
 </p> 
 
+## The transcript
+Now for the part we've all been waiting for. After expending much effort into parsing the transcript with regular expressions, we will finally use it. Starting with the most common 100 words used in his comic.
+
+```{r}
+#TODO: delete below single line
+xkcd_transcript <- xkcd_date
+xkcd_words <- xkcd_transcript |> separate_longer_delim(transcript, delim = regex(r"(\s+)"))
+word_frequency <- xkcd_words |> group_by(transcript) |> count() |> arrange(desc(n))
+word_frequency
+```
+
+
 # Sources
 
 - xkcd.com
 - xkcd.com/json.html
 - xkcd.com/about/
+
+To no one's suprise, the most common words are the articles 'the', 'a', 'of', etc.. However ...
+
+Let's now look at the most common character's in the comic.
+```{r}
+word_frequency
+```
+
+# Sources
+
+- xkcd.com
+- xkcd.com/json.html
+- xkcd.com/about
