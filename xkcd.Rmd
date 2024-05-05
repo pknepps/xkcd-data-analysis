@@ -108,40 +108,54 @@ names_regex = r"{(?:\\n)(?=((?:.(?!\\n))+:))[^:]+:}"
 bad_newlines = r"{(?:\\n)(?!(?:.(?!\\n))+:)}"
 
 parse_dialog <- function(dialog) {
-    step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
-    step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
+    step0 = str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
+    step1 = str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
     scene_info = str_extract_all(step1, scenebuilding)
-    step2.1 <- str_remove_all(step1, scenebuilding)
-    step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
-    step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)")
-    str_view(step2.3, bad_newlines)
-    step2.4 <- str_remove_all(step2.3, bad_newlines)
-    str_view(step2.4)
-    character_and_speech <- str_match_all(step2.4, dialog_regex)
-    c(scene_info, character_and_speech)
+    step2.1 = str_remove_all(step1, scenebuilding)
+    step2.2 = str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
+    step2.3 = str_remove(step2.2, r"(\s*(?:\\n)+$)")
+    step2.4 = str_remove_all(step2.3, bad_newlines)
+    character_and_speech = str_match_all(step2.4, dialog_regex)
+    return(character_and_speech)
 }
 
+# mutate_and_parse = function(df) {
+#     transcript_split = df$transcript |> parse_dialog()
+#     people = c()
+#     say = c()
+#     for (x in 1:length(transcript_split)) {
+#         people[x] = cat(transcript_split[[x]][,2])
+#         say[x] = cat(transcript_split[[x]][,3])
+#     }
+#     out = c(people, say)
+#     return(people)
+# }
+
+mutate_and_parse = function(df) {
+    transcript_split = df$transcript |> parse_dialog()
+    people = c()
+    say = c()
+    for (x in transcript_split) {
+        #people = append(people, cat(x[,2]))
+        print(cat(x[,2]))
+        #print(people)
+        #say = append(say, cat(x[,3]))
+    }
+    #out = c(people, say)
+    #return(people)
+    return(7)
+}
+
+data <- xkcd_date$transcript |> parse_dialog()
+head(xkcd_date) |> mutate_and_parse()
+head(xkcd_date)
+
+head(data) |> map(\(x) reduce(x, \(y) paste(y, sep=" ")))
+cat(data[[512]][,2])
+head(data)
+
+# Used for testing.
 sample <- xkcd |> sample_n(30) |> pull(transcript)
-str_view(sample[3])
-
-dialog = sample[3]; dialog
-step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
-step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
-scene_info = str_extract_all(step1, scenebuilding)
-step2.1 <- str_remove_all(step1, scenebuilding)
-step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
-step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)")
-str_view(step2.3, bad_newlines)
-step2.4 <- str_remove_all(step2.3, bad_newlines)
-str_view(step2.4)
-character_and_speech <- str_match_all(step2.4, dialog_regex)
-character_and_speech
-
-
-parse_dialog(sample[3])[[2]]
-for (d in sample) {
-    print(parse_dialog(d))
-}
 ```
 
 
