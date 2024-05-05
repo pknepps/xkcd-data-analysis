@@ -105,6 +105,7 @@ scenebuilding = r"{\[\[([^\]]*)\]\]}"
 dialog_regex = r"{(?:\\n)?([^:]+): ((?:.(?!\\n[^:]+:))*.)}"
 # THIS IS THE NAME REGEX
 names_regex = r"{(?:\\n)(?=((?:.(?!\\n))+:))[^:]+:}"
+bad_newlines = r"{(?:\\n)(?!(?:.(?!\\n))+:)}"
 
 parse_dialog <- function(dialog) {
     step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
@@ -113,24 +114,28 @@ parse_dialog <- function(dialog) {
     step2.1 <- str_remove_all(step1, scenebuilding)
     step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
     step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)")
-    character_and_speech <- str_match_all(step2.3, dialog_regex)
+    str_view(step2.3, bad_newlines)
+    step2.4 <- str_remove_all(step2.3, bad_newlines)
+    str_view(step2.4)
+    character_and_speech <- str_match_all(step2.4, dialog_regex)
     c(scene_info, character_and_speech)
 }
 
 sample <- xkcd |> sample_n(30) |> pull(transcript)
 str_view(sample[3])
 
-dialog = sample[3]
+dialog = sample[3]; dialog
 step0 <- str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
 step1 <- str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
 scene_info = str_extract_all(step1, scenebuilding)
 step2.1 <- str_remove_all(step1, scenebuilding)
 step2.2 <- str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
-step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)");
-str_view(step2.3)
-character_and_speech <- str_match_all(step2.3, dialog_regex)
+step2.3 <- str_remove(step2.2, r"(\s*(?:\\n)+$)")
+str_view(step2.3, bad_newlines)
+step2.4 <- str_remove_all(step2.3, bad_newlines)
+str_view(step2.4)
+character_and_speech <- str_match_all(step2.4, dialog_regex)
 character_and_speech
-
 
 
 parse_dialog(sample[3])[[2]]
