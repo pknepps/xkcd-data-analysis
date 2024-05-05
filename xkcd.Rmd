@@ -251,11 +251,6 @@ word_frequency
 ```
 
 
-# Sources
-
-- xkcd.com
-- xkcd.com/json.html
-- xkcd.com/about/
 
 To no one's suprise, the most common words are the articles 'the', 'a', 'of', etc.. However ...
 
@@ -268,4 +263,4 @@ word_frequency
 
 - xkcd.com
 - xkcd.com/json.html
-- xkcd.com/about
+- xkcd.com/about/
