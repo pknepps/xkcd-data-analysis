@@ -122,7 +122,7 @@ bad_newlines = r"{(?:\\n)(?!(?:.(?!\\n))+:)}"
 parse_dialog <- function(dialog) {
     step0 = str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
     step1 = str_remove_all(step0, r"(^\s+"|\{\{.*\}\}"?$)")
-    scene_info = str_extract_all(step1, scenebuilding)
+    scene_info = str_match_all(step1, scenebuilding)
     step2.1 = str_remove_all(step1, scenebuilding)
     step2.2 = str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
     step2.3 = str_remove(step2.2, r"(\s*(?:\\n)+$)")
@@ -130,7 +130,8 @@ parse_dialog <- function(dialog) {
     dialog = str_split(step2.3, names_regex)
     n <- names |> map(\(x) reduce(x[,2], function(x, y) paste(x, y, sep = "|||"), .init="")) |> unlist()
     d <- dialog |> map(\(x) reduce(x, paste, .init="")) |> unlist()
-    data.frame(names = n, dialog= d)
+    s <- scene_info |> map(\(x) reduce(x[,2], paste, .init="")) |> unlist()
+    data.frame(names = n, dialog= d, scene=s)
 }
 # sample <- xkcd |> sample_n(10) |> pull(transcript)
 ```
@@ -272,6 +273,23 @@ Most of these names are generic (man, woman, etc.). However, the notable charact
 ```{r}
 
 ```
+
+
+Let's see how good of a job we did parsing the comics.
+
+The xkcd comics have a wiki where people compile information about the comics. Let's take a look at hat guy once again.
+
+According to the wiki https://www.explainxkcd.com/wiki/index.php/Black_Hat, Black hat makes 174 appearances. With our regex, we have captured 101. For Black Hat, we successfully recognize 58% of his occurances.
+
+```{r}
+xkcd_characters |>
+    filter(str_detect(names, "hat") | str_detect(scene, "hat")) |> 
+    filter(str_detect(names, "guy|black") | str_detect(scene, "guy|black")) |> 
+    distinct(num) |> 
+    count()
+```
+This means we have missed 
+
 
 # Sources
 
