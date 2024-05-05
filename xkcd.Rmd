@@ -103,20 +103,22 @@ New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
 
 # Troublesome comics
 785
+992, 1286 - non parsable colons
 
 
-```{r dialog_parse}
-xkcd_comma <- xkcd_date |> mutate(transcript = transcript |> str_replace_all("\\(COMMA\\)", ","))
-
+```{r}
 view_xkcd_string <- function(strin) {
     str_replace_all(strin, r"{\\n}", "\n") |> str_view()
 }
 
+
 scenebuilding = r"{\[\[([^\]]*)\]\]}"
 dialog_regex = r"{(?:\\n)?([^:]+): ((?:.(?!\\n[^:]+:))*.)}"
 # THIS IS THE NAME REGEX
-names_regex = r"{(?:\\n)(?=((?:.(?!\\n))+:))[^:]+:}"
+names_regex = r"{(?:\\n)(?=(?:.(?!\\n))+:)([^:]+):}"
 bad_newlines = r"{(?:\\n)(?!(?:.(?!\\n))+:)}"
+
+str_view(sample[1])
 
 parse_dialog <- function(dialog) {
     step0 = str_replace_all(dialog, r"{(?:\\n)+}", r"{\\n}")
@@ -125,19 +127,31 @@ parse_dialog <- function(dialog) {
     step2.1 = str_remove_all(step1, scenebuilding)
     step2.2 = str_replace_all(step2.1, r"{(?:\\n)+}", r"{\\n}")
     step2.3 = str_remove(step2.2, r"(\s*(?:\\n)+$)")
-    step2.4 = str_remove_all(step2.3, bad_newlines)
-    character_and_speech = str_match_all(step2.4, dialog_regex)
-    return(character_and_speech)
+    names = str_match_all(step2.3, names_regex)
+    dialog = str_split(step2.3, names_regex)
+    n <- names |> map(\(x) reduce(x[,2], paste, .init="")) |> unlist()
+    d <- dialog |> map(\(x) reduce(x, paste, .init="")) |> unlist()
+    data.frame(names = n, dialog= d)
 }
+# sample <- xkcd |> sample_n(10) |> pull(transcript)
 
-mutate_and_parse = function(df) {
-    split_transcript = df$transcript |> parse_dialog() |> map(as.data.frame)
-    speakers = split_transcript |> map(\(x) reduce(x$V2, paste, .init = "")) |> unlist()
-    script = split_transcript |> map(\(x) reduce(x$V3, paste, .init = "")) |> unlist()
-    return(data.frame(speakers, script))
-}
+parse_dialog(sample)
+```
 
-xkcd_transcript <- xkcd_comma |> cbind(xkcd_date |> mutate_and_parse())
+
+```{r dialog_parse}
+xkcd_comma <- xkcd_date |> mutate(transcript = transcript |> str_replace_all("\\(COMMA\\)", ","))
+# 
+# mutate_and_parse = function(df) {
+#     split_transcript = df$transcript |> parse_dialog() |> map(as.data.frame)
+#     speakers = split_transcript |> map(\(x) reduce(x$V2, paste, .init = "")) |> unlist()
+#     script = split_transcript |> map(\(x) reduce(x$V3, paste, .init = "")) |> unlist()
+#     return(data.frame(speakers, script))
+# }
+
+
+xkcd_transcript <- xkcd_comma |> cbind(xkcd_comma |> pull(transcript) |> parse_dialog())
+xkcd_transcript
 ```
 
 # Analysis
