@@ -132,18 +132,7 @@ parse_dialog <- function(dialog) {
 # }
 
 mutate_and_parse = function(df) {
-    transcript_split = df$transcript |> parse_dialog()
-    people = c()
-    say = c()
-    for (x in transcript_split) {
-        #people = append(people, cat(x[,2]))
-        print(cat(x[,2]))
-        #print(people)
-        #say = append(say, cat(x[,3]))
-    }
-    #out = c(people, say)
-    #return(people)
-    return(7)
+    return(df$transcript |> parse_dialog() |> map(as.data.frame) |> map(\(x) reduce(x$V2, paste, .init = "")))
 }
 
 data <- xkcd_date$transcript |> parse_dialog()
