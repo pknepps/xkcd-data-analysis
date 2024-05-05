@@ -1,5 +1,5 @@
 ---
-title: "xkcd"
+title: "XKCD: a Semi-Serious Analysis of a Non-Serious Comic"
 author: "Preston Knepper and Kevin McCall"
 date: "2024-04-18"
 output: html_document
@@ -12,13 +12,17 @@ knitr::opts_chunk$set(warning = FALSE)
 
 # Introdution
 
-In this study, we will analyze commonalities and frequencies of various items in the XKCD. XKCD is a web comic written by Randall Munroe, a CNU graduate with a degree in physics. Before writing comics full time, he previously had worked on robotics at NASA.
+In this study, we will analyze commonalities and frequencies of various items in the xkcd. XKCD is a web comic written by Randall Munroe, a CNU graduate with a degree in physics. Before writing comics full time, he previously had worked on robotics at NASA.
 
-XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The chances of you being in this class (Math 474) and never seeing an XKCD comic are slim to none.
+XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The chances of you being in this class (Math 474) and never seeing an xkcd comic are slim to none. The comic was originally started on LiveJournal on September 30, 2005, with an upload of 13 images. It quickly gain popularity and it was moved to his own server, xkcd.com, on January 1, 2006. Since then, the comic has been posted regularly on every Monday, Wednesday, and Saturday. 
+
+The web-comic features many topics and loved characters (despite the comic made up of almost entirely stick figures). These topics are mostly STEM related, but can also be about politics, language, and sometimes just feature bizarre and random humor -- like most comics featuring Beret Guy. Some popular characters from the comic include [Cueball](https://www.explainxkcd.com/wiki/index.php/Cueball), [Black Hat](https://www.explainxkcd.com/wiki/index.php/Black_Hat), the previously mentioned [Beret Guy](https://www.explainxkcd.com/wiki/index.php/Beret_Guy), and Cueball's girlfriend, [Megan](https://www.explainxkcd.com/wiki/index.php/Megan). For the most part, the characters have little story and are mostly used to expand on the humor in an individual comic.
+
+In this paper, we will observe the transcripts of these comics, as well as unique properties about some of the comics and the dates they were posted.
 
 # The data
 We will be using the tidyverse package throughout this project. We will go ahead and include it now.
-```{r, message=FALSE}
+```{r packages, message=FALSE}
 if (!require("tidyverse")) {
   install.packages("tidyverse")
 }
@@ -26,7 +30,7 @@ library("tidyverse")
 ```
 
 The .csv below contains data on every single xkcd comic. Most importantly, the transcript of every comic. It's a good idea to run the python file, extractDataset.py, before viewing this file for the first time, as a comic is posted three times every week. Monroe offers an API for his comic, which only requires the parsing of jsons into a .csv which R can read.
-```{r}
+```{r csv}
 xkcd <- read.csv("xkcd.csv", quote = "")
 nrow(xkcd)
 ```
@@ -47,7 +51,7 @@ From the summary, we get information on the metadata of the comic. A comic has t
 
 The first thing to do is to convert the three separate attributes year, month, day into a single value date_posted. It will also be useful to add a day_of_week attribute, which includes the day of the week the comic was posted. The day of the week will probably be more useful than just the date as the comic is posted regularly on mondays, wednesdays, and fridays.
 
-```{r}
+```{r date_parse}
 xkcd_date <- xkcd |> unite(date, month, day, year, sep = "-") |> mutate(date = as.Date(mdy(date))) |> mutate(weekday = wday(date, label = TRUE),.after = date)
 ```
 Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
@@ -61,7 +65,8 @@ There are 2 challenges in doing this
 
 
 ## Parsing the [[scenebuilding]]
-![iknowregex](https://imgs.xkcd.com/comics/regular_expressions.png)
+![I_Know_Regular_Expressions](https://imgs.xkcd.com/comics/regular_expressions.png)
+
 This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
 our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
 - \\[\\[
@@ -80,7 +85,9 @@ our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
 
 ## Parsing the Character: Dialog
 ![regex_problems](https://imgs.xkcd.com/comics/perl_problems_2x.png)
+
 ### pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
+
 ### Realization
 Upon testing with sample data:
 `" \"[[A boy sits in a barrel which is floating in an ocean.]]\\nBoy: I wonder where I'll float next?\\n[[The barrel drifts into the distance. Nothing else can be seen.]]\\n{{Alt: Don't we all.}}\""`
@@ -88,7 +95,9 @@ Upon doing a stringview, I noticed that "\n" was actually "\\n". Thus multiline 
 
 ### redemption
 New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
+
 #### Regex negative lookahead
+
 #### Non capturing groups
 `(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*`
 
@@ -96,7 +105,9 @@ New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
 785
 
 
-```{r}
+```{r dialog_parse}
+xkcd_comma <- xkcd_date |> mutate(transcript = transcript |> str_replace_all("\\(COMMA\\)", ","))
+
 view_xkcd_string <- function(strin) {
     str_replace_all(strin, r"{\\n}", "\n") |> str_view()
 }
@@ -119,39 +130,16 @@ parse_dialog <- function(dialog) {
     return(character_and_speech)
 }
 
-# mutate_and_parse = function(df) {
-#     transcript_split = df$transcript |> parse_dialog()
-#     people = c()
-#     say = c()
-#     for (x in 1:length(transcript_split)) {
-#         people[x] = cat(transcript_split[[x]][,2])
-#         say[x] = cat(transcript_split[[x]][,3])
-#     }
-#     out = c(people, say)
-#     return(people)
-# }
-
 mutate_and_parse = function(df) {
-    return(df$transcript |> parse_dialog() |> map(as.data.frame) |> map(\(x) reduce(x$V2, paste, .init = "")))
+    split_transcript = df$transcript |> parse_dialog() |> map(as.data.frame)
+    speakers = split_transcript |> map(\(x) reduce(x$V2, paste, .init = "")) |> unlist()
+    script = split_transcript |> map(\(x) reduce(x$V3, paste, .init = "")) |> unlist()
+    return(data.frame(speakers, script))
 }
 
-data <- xkcd_date$transcript |> parse_dialog()
-head(xkcd_date) |> mutate_and_parse()
-head(xkcd_date)
-
-head(data) |> map(\(x) reduce(x, \(y) paste(y, sep=" ")))
-cat(data[[512]][,2])
-head(data)
-
-# Used for testing.
-sample <- xkcd |> sample_n(30) |> pull(transcript)
+xkcd_transcript <- xkcd_comma |> cbind(xkcd_date |> mutate_and_parse())
 ```
 
-
-```{r}
-xkcd_transcript_temp <- xkcd_date |> separate_longer_delim(transcript, regex(names_regex)) |> group_by(num, date, weekday, title, safe_title, alt, img, link, news, extra_parts) |> summarise(transcript = paste(transcript, collapse = " "))
-xkcd_transcript_temp
-```
 # Analysis
 ## Dates
 
@@ -166,22 +154,22 @@ xkcd_date |> ggplot(aes(weekday)) + geom_bar() + labs(title = "Number of Comics 
 ```
 
 As we see, the yearly posts are pretty consistent. While 2024 provides no significance (as the year is not complete), 2006 does. We can investigate.
-```{r}
+```{r 2006}
 xkcd_date |> filter(format(date, "%Y") == "2006") |> group_by(date) |> count() |> arrange(desc(n)) |> head()
 ```
 We can see here that Munroe posted 44 comics on January 1, 2006. Which is the day xkcd was started. To quote Munroe at this time, "I was going through old math/sketching graph paper notebooks and didn't want to lose some of the work in them, so I started scanning pages. I took the more comic-y ones and put them up on a server I was testing out."
 
 Now to discuss the second graph. While xkcd has had the majority of it's posts on MWF, there are some exceptions. We already know from the previous graph, that 44 comics were posted on 6-1-1, a sunday. Lets look at some of the other dates when this happened.
-```{r}
+```{r unusual_dates}
 xkcd_date_abnormal <- xkcd_date |> filter(weekday %in% c("Sun", "Tue", "Thu", "Sat"), date != "2006-01-01")
 xkcd_date_abnormal |> group_by(weekday) |> count()
 ```
 So 3 of the sunday comics were not posted on the first day. Meaning we have 34 abnormal posts. Lets narrow down the time of theses abnormalities a bit further.
-```{r}
+```{r more_unusual_dates}
 xkcd_date_abnormal |> group_by(format(date, "%Y"), weekday) |> count()
 ```
-It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest sake, here are a few of the later comics which were abnormal.
-```{r}
+It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest's sake, here are a few of the later comics which were abnormal.
+```{r list_of_unusual_comics}
 (xkcd_date_abnormal |> filter(format(date, "%Y") > 2018))[c(1:4, 8:10)]
 ```
 <p float="left">
@@ -251,9 +239,7 @@ One of these comics has an accent above the 'e' in the word 'Clichéd' which may
 Now for the part we've all been waiting for. After expending much effort into parsing the transcript with regular expressions, we will finally use it. Starting with the most common 100 words used in his comic.
 
 ```{r}
-#TODO: delete below single line
-xkcd_transcript <- xkcd_date
-xkcd_words <- xkcd_transcript |> separate_longer_delim(transcript, delim = regex(r"(\s+)"))
+xkcd_words <- xkcd_transcript |> separate_longer_delim(transcript, delim = regex(r"(\s+)")) |> mutate(transcript = tolower(transcript) |> str_replace_all("[^[\\w+]]", "") |> na_if("")) |> filter(!is.na(transcript))
 word_frequency <- xkcd_words |> group_by(transcript) |> count() |> arrange(desc(n))
 word_frequency
 ```
@@ -264,7 +250,7 @@ To no one's suprise, the most common words are the articles 'the', 'a', 'of', et
 
 Let's now look at the most common character's in the comic.
 ```{r}
-word_frequency
+
 ```
 
 # Sources
@@ -272,3 +258,4 @@ word_frequency
 - xkcd.com
 - xkcd.com/json.html
 - xkcd.com/about/
+- explainxkcd.com
