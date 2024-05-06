@@ -89,7 +89,7 @@ section {
 
 ---
 
-### Analyzing the problem
+## Analyzing the problem
 
 Here is an example comic to parse text from:
 
@@ -240,10 +240,6 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 ---
 
 ### Inconsistent delimiters
-*   [] instead of [[]]
-*   no starting \n
-
-*   Same character with multiple names
 
 Since the way we parse data is dependent on the ":" symbol, we are at the mercy of Monroe to provide to be consistent in his theatrical format. However, there are exceptions. For example:
 
@@ -251,26 +247,31 @@ Since the way we parse data is dependent on the ":" symbol, we are at the mercy 
 
 ---
 
-### Comics with Missing Transcripts
-
-![newlines in dialog](https://imgs.xkcd.com/comics/open_mic_night.png)
-
----
-
 <style scoped>
 img {
-    transform: translateY(150px);
-    scale: 3
+    transform: translateY(120px);
+    scale: 4
 }
 </style>
 ### Unparsable comics
 Some comics contain colons in their text body. Since there is no way to distinguish this from a character dialog, we cannot correctly parse these comics.
 
-![non-parsable colon h:400](https://www.explainxkcd.com/wiki/images/2/26/encryptic.png)
+![non-parsable colon h:300](https://www.explainxkcd.com/wiki/images/2/26/encryptic.png)
+
+---
+### Comics With text in Scene Tags
+Some comics, like this one, have no speaker, but still have dialog. This cannot be extracted since the data is contained within the [[]] as scene text.
+
+![text in scene w:1100](https://imgs.xkcd.com/comics/fight.png)
 
 ---
 
-![text in scene](https://imgs.xkcd.com/comics/fight.png)
+### Comics with Missing Transcripts
+
+![newlines in dialog w:1100](https://imgs.xkcd.com/comics/open_mic_night.png)
+
+---
+### Same Character with Multiple names
 
 ---
 
