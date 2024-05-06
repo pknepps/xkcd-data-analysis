@@ -259,8 +259,6 @@ Now for the part we've all been waiting for. After expending much effort into pa
 ```{r}
 xkcd_words <- xkcd_transcript |> separate_longer_delim(dialog, delim = regex(r"(\s+)")) |> mutate(dialog = tolower(dialog) |> str_replace_all("[^[\\w+]]", "") |> na_if("")) |> filter(!is.na(dialog))
 word_frequency <- xkcd_words |> group_by(dialog) |> count() |> arrange(desc(n))
-word_frequency[250:500,] |> ggplot(aes(label = dialog, size = n)) + geom_text_wordcloud() + theme_minimal()
-word_frequency[1:100,]
 ```
 
 To no one's suprise, the most common words are the articles 'the', 'a', 'of', etc.. 
@@ -288,12 +286,18 @@ The xkcd comics have a wiki where people compile information about the comics. L
 According to the wiki https://www.explainxkcd.com/wiki/index.php/Black_Hat, Black hat makes 174 appearances. With our regex, we have captured 101. For Black Hat, we successfully recognize 58% of his occurances.
 
 ```{r}
-xkcd_characters |>
-    filter(str_detect(names, "hat") | str_detect(scene, "hat")) |> 
-    filter(str_detect(names, "guy|black") | str_detect(scene, "guy|black")) |> 
-    distinct(num) |> 
-    count()
+black_hat <- xkcd_characters |>
+    filter((str_detect(names, "\\bhat\\b") & str_detect(names, "black|man|guy")) | (str_detect(scene, "\\bhat\\b") & str_detect(scene, "black|man|guy"))) |> 
+    filter(!str_detect(names, "boy|white")) |> group_by(num, date, weekday, title) |> count()
+nrow(black_hat) / 174
+black_hat |> ggplot(aes(date)) + geom_histogram(fill = "black", binwidth = 365) + 
+    labs(title = "Black Hat Man Appearances over time") + geom_density(aes(y = 365 * ..count..), col = "red")
 ```
+```{r}
+beret <- xkcd_characters |> filter(str_detect(names, "beret") | str_detect(scene, "beret")) |> group_by(num, date, weekday, title) |> count()
+nrow(beret) / 103
+```
+
 This means we have missed 
 
 
