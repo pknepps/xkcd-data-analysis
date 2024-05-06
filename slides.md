@@ -239,16 +239,6 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 
 ---
 
-### Inconsistent delimiters
-
----
-
-Since the way we parse data is dependent on the ":" symbol, we are at the mercy of Monroe to provide to be consistent in his theatrical format. However, there are exceptions. For example:
-
----
-
----
-
 <style scoped>
 img {
     transform: translateY(120px);
