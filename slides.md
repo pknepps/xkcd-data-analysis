@@ -60,7 +60,7 @@ section {
 * link: An external link on image click.
 * year: The year the comic was posted.
 * news: Comic news to display to the reader.
-* safe_titl: A version of the title safe for all browsers.
+* safe_title: A version of the title safe for all browsers.
 * transcript: The bane of this project.
 * alt: The alt text (mouseover) of the comic.
 * img: A link to the comic image.
@@ -241,6 +241,8 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 
 ### Inconsistent delimiters
 
+---
+
 Since the way we parse data is dependent on the ":" symbol, we are at the mercy of Monroe to provide to be consistent in his theatrical format. However, there are exceptions. For example:
 
 ---
@@ -277,5 +279,11 @@ Some comics, like this one, have no speaker, but still have dialog. This cannot 
 
 # Analysis
 ![width:1000px](https://imgs.xkcd.com/comics/self_description.png)
+
 ---
 
+## Analysis
+
+Despite the information 
+
+---

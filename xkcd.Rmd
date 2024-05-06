@@ -290,12 +290,14 @@ black_hat <- xkcd_characters |>
     filter((str_detect(names, "\\bhat\\b") & str_detect(names, "black|man|guy")) | (str_detect(scene, "\\bhat\\b") & str_detect(scene, "black|man|guy"))) |> 
     filter(!str_detect(names, "boy|white")) |> group_by(num, date, weekday, title) |> count()
 nrow(black_hat) / 174
-black_hat |> ggplot(aes(date)) + geom_histogram(fill = "black", binwidth = 365) + 
-    labs(title = "Black Hat Man Appearances over time") + geom_density(aes(y = 365 * ..count..), col = "red")
+black_hat |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "black") + 
+    labs(title = "Black Hat Man Appearances over time")
 ```
 ```{r}
 beret <- xkcd_characters |> filter(str_detect(names, "beret") | str_detect(scene, "beret")) |> group_by(num, date, weekday, title) |> count()
 nrow(beret) / 103
+beret |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE) + 
+    labs(title = "Beret Man Appearances over time")
 ```
 
 This means we have missed 
@@ -304,6 +306,15 @@ This means we have missed
 Most of these make sense, he typically makes himself a character when specifically writing comics about his personality or life, however, some are inconsistent. In "The Race", Randall starts in part one by not naming any characters, then the protagonist to "Monrovian Male" to refer to being similar to himself, and finally, in part 4, he just names the character "randall", after himself.
 
 Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
+
+## Comics with no transcripts
+```{r}
+no_transcript <- xkcd_transcript |> filter(transcript == " NA")
+no_transcript
+no_transcript |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar()
+no_transcript |> filter(format(date, "%Y") == 2015)
+```
+
 
 # Sources
 
