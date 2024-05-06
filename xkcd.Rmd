@@ -68,7 +68,7 @@ There are 2 challenges in doing this
 
 
 ## Parsing the [[scenebuilding]]
-![I_Know_Regular_Expressions](https://imgs.xkcd.com/comics/regular_expressions.png)
+![I_Know_Regular_Expressions](https://xkcd.com/s/0b7742.png)
 
 This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
 our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
@@ -297,7 +297,7 @@ This means we have missed
 
 Most of these make sense, he typically makes himself a character when specifically writing comics about his personality or life, however, some are inconsistent. In "The Race", Randall starts in part one by not naming any characters, then the protagonist to "Monrovian Male" to refer to being similar to himself, and finally, in part 4, he just names the character "randall", after himself.
 
-Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective.
+Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
 
 # Sources
 
