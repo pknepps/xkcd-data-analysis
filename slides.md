@@ -26,7 +26,9 @@ section {
 # Introduction
 
 ![bg left 95%](https://imgs.xkcd.com/comics/data_trap.png)
-In this project, we take a look at xkcd comics across the life of the webcomic to find interesting paternand abnormalities, as well as challenge our abilities to parse and clean data which was never meant to be studied.---
+In this project, we take a look at xkcd comics across the life of the webcomic to find interesting paternand abnormalities, as well as challenge our abilities to parse and clean data which was never meant to be studied.
+
+---
 
 # Background
 
@@ -45,45 +47,45 @@ XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", 
 
 ---
 
-<!-- header: Gathering the Data-->
 <style scoped>
 section {
-    font-size: 200%
+    font-size: 150%
 }
 </style>
 
 ## A look at the JSON
 
-![bg right:35% 150%](json.png)
+![bg right:38% 100%](json.png)
 
--   month: The month of the the year this comic was posted (as a number).
--   num: The comic number.
-    link: An external link on image click.
-    -year: The year the comic was posted.
--   news: Comic news to display to the reader.
--   safe_titl: A version of the title safe for all browsers.
--   transcript: The bane of this project.
--   alt: The alt text (mouseover) of the comic.
--   img: A link to the comic image.
--   title: The title of the comic.
--   day: The day of the month the comic was posted. t
+* month: The month of the the year this comic was posted (as a number).
+* num: The comic number.
+* link: An external link on image click.
+* year: The year the comic was posted.
+* news: Comic news to display to the reader.
+* safe_titl: A version of the title safe for all browsers.
+* transcript: The bane of this project.
+* alt: The alt text (mouseover) of the comic.
+* img: A link to the comic image.
+* title: The title of the comic.
+* day: The day of the month the comic was posted.
 
 ---
 
+<style scoped>
+section {
+    font-size: 200%
+}
+</style>
 ### The transcript and why it's terrible
-
+![bg left:33% 100%](https://imgs.xkcd.com/comics/future_self.png)
 -   The transcript is not parse friendly, it includes many commas, quotes, and newlines.
--   When R reads a csv (through both read*csv and read.csv), it will parse *\_Every\*\* comma as a new column.
--   When R reads a quote, it will try to end it's current value, throwing an error.
--   When R reads a newline '\n' character, it will immediatly create a new entry in the dataframe.
+    *   When R reads a csv (through both read*csv and read.csv), it will parse *\_Every\*\* comma as a new column.
+    *   When R reads a quote, it will try to end it's current value, throwing an error.
+    *   When R reads a newline '\n' character, it will immediatly create a new entry in the dataframe.
 
 ---
 
 # Parsing the Data
-
-## Stage by stage process
-
-Unlike parsing the scenery, parsing dialog is **hard**.
 
 ---
 
@@ -94,8 +96,7 @@ Here is an example comic to parse text from:
 ![width:1100](https://imgs.xkcd.com/comics/vacuum_2x.png)
 
 ---
-
-[[Beret Guy is heaving a vacuum cleaner overhead]]\n\nCueball: What are you doing?\n[[Beret guy sets the vacuum cleaner on the ground as one would normally use it, but is standing atop the engine and desperately manhandling the grip.]]\nBeret: Trying to unlock the tremendous energy of the vacuum.\n\n[[Beret guy rises off the ground, hovering on the vacuum cleaner]\nCueball: That's not what that-\nBeret: Ha ha! It works!\n<<BWAROUUGUMHGHHGMMM>>\n\nCueball: I said, that's-\nBeret: The univere is mine to command!\n<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>\n[[Beret guy rockets away on plume of Clean Energy]]\n\n{{Title text: Do you think you could actually clean the living room at some point, though?}}"
+*[[Beret Guy is heaving a vacuum cleaner overhead]]\n\nCueball: What are you doing?\n[[Beret guy sets the vacuum cleaner on the ground as one would normally use it, but is standing atop the engine and desperately manhandling the grip.]]\nBeret: Trying to unlock the tremendous energy of the vacuum.\n\n[[Beret guy rises off the ground, hovering on the vacuum cleaner]]\nCueball: That's not what that-\nBeret: Ha ha! It works!\n<<BWAROUUGUMHGHHGMMM>>\n\nCueball: I said, that's-\nBeret: The univere is mine to command!\n<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>\n[[Beret guy rockets away on plume of Clean Energy]]\n\n{{Title text: Do you think you could actually clean the living room at some point, though?}}*
 
 ---
 
