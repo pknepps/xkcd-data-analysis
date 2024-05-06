@@ -105,6 +105,8 @@ New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
 785
 992, 1286 - non parsable colons
 340 - text in scene
+2279, 1850 - no transcript
+
 
 
 ```{r dialog_parse_fn}
