@@ -156,7 +156,8 @@ Beret: The univere is mine to command!\n
 
 # `\[\[([^\]]*)\]\]`
 
-*   we extract the
+*   We use capturing groups and `str_match_all` to select the data inside 2 sets of parentheses
+*   After parsing, we remove this data with `str_remove_all`
 
 ---
 
@@ -187,7 +188,7 @@ However, since newlines can be anywhere in a character's dialog, we can't use a 
 
 # `(?:\\n)(?!(?:.(?!\\n))+:)`
 
-*   This regex uses _lookaheads_, a powerful regex feature that determines matches without capturing the input.
+*   This regex uses _lookaheads_, a powerful regex feature that will examine the code ahead **without consuming the characters** to make matches
 
 *   Lookaheads are used to match a select a \n where there is another \n in between it and the next : character
 
@@ -241,24 +242,35 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 ### Inconsistent delimiters
 *   [] instead of [[]]
 *   no starting \n
-*   colons in the text of the comic
+
 *   Same character with multiple names
 
 Since the way we parse data is dependent on the ":" symbol, we are at the mercy of Monroe to provide to be consistent in his theatrical format. However, there are exceptions. For example:
 
 ---
 
-
 ---
 
 ### Comics with Missing Transcripts
 
 ![newlines in dialog](https://imgs.xkcd.com/comics/open_mic_night.png)
-![non-parsable colon](https://imgs.xkcd.com/comics/mnemonics_2x.png)
-![non-parsable colon](https://www.explainxkcd.com/wiki/images/2/26/encryptic.png)
+
+---
+
+<style scoped>
+img {
+    transform: translateY(150px);
+    scale: 3
+}
+</style>
+### Unparsable comics
+Some comics contain colons in their text body. Since there is no way to distinguish this from a character dialog, we cannot correctly parse these comics.
+
+![non-parsable colon h:400](https://www.explainxkcd.com/wiki/images/2/26/encryptic.png)
+
+---
+
 ![text in scene](https://imgs.xkcd.com/comics/fight.png)
-![no transcript](https://imgs.xkcd.com/comics/symptoms_2x.png)
-![no transcript](https://imgs.xkcd.com/comics/air_force_museum_2x.png)
 
 ---
 
