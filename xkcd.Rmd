@@ -21,10 +21,13 @@ The web-comic features many topics and loved characters (despite the comic made 
 In this paper, we will observe the transcripts of these comics, as well as unique properties about some of the comics and the dates they were posted.
 
 # The data
-We will be using the tidyverse package throughout this project. We will go ahead and include it now.
+We will be using the tidyverse package throughout this project. We will go ahead and include it now. Another package we use later is the 'ggwordcloud' package
 ```{r packages, message=FALSE}
 if (!require("tidyverse")) {
-  install.packages("tidyverse")
+    install.packages("tidyverse")
+}
+if (!require("ggwordcloud")) {
+    install.packages("ggwordcloud")
 }
 library("tidyverse")
 ```
@@ -65,7 +68,7 @@ There are 2 challenges in doing this
 
 
 ## Parsing the [[scenebuilding]]
-![I_Know_Regular_Expressions](https://imgs.xkcd.com/comics/regular_expressions.png)
+![I_Know_Regular_Expressions](https://xkcd.com/s/0b7742.png)
 
 This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
 our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
@@ -256,10 +259,11 @@ Now for the part we've all been waiting for. After expending much effort into pa
 ```{r}
 xkcd_words <- xkcd_transcript |> separate_longer_delim(dialog, delim = regex(r"(\s+)")) |> mutate(dialog = tolower(dialog) |> str_replace_all("[^[\\w+]]", "") |> na_if("")) |> filter(!is.na(dialog))
 word_frequency <- xkcd_words |> group_by(dialog) |> count() |> arrange(desc(n))
-word_frequency
+word_frequency[250:500,] |> ggplot(aes(label = dialog, size = n)) + geom_text_wordcloud() + theme_minimal()
+word_frequency[1:100,]
 ```
 
-To no one's suprise, the most common words are the articles 'the', 'a', 'of', etc.. However ...
+To no one's suprise, the most common words are the articles 'the', 'a', 'of', etc.. 
 
 Let's now look at the most common character's in the comic.
 ```{r}
@@ -270,7 +274,7 @@ black_hat_guys <- character_freq |> filter(str_detect(names, ".*hat.*")) |> filt
 black_hat_guys |> ungroup() |> summarize(black_hat_count = sum(n))
 ```
 
-Most of these names are generic (man, woman, etc.). However, the notable character's within the top 20 are 'Black Hat Guy' and 'Beret Guy'. As mentioned earlier, these characters have the most consistent personality and are some of the favorite characters of the comic. Otherwise, it seems that the naming of characters is very inconsistent, with seven different entries for 'Black Hat Guy' in the first 150 most common character names: "man in black hat", "guy with hat", "black hat", "blakc hat man", "hat man", "black hat guy", "hat guy". This makes it hard to perform any actual analysis on this data. However, there are still some interesting things to pull from here. For example we see an entry for 'randall' (the comics' author), let's look into those comics.
+Most of these names are generic (man, woman, etc.). However, the notable character's within the top 20 are 'Black Hat Guy' and 'Beret Guy'. As mentioned earlier, these characters have the most consistent personality and are some of the favorite characters of the comic. Otherwise, it seems that the naming of characters is very inconsistent, with seven different entries for 'Black Hat Guy' in the first 150 most common character names: "man in black hat", "guy with hat", "black hat", "black hat man", "hat man", "black hat guy", "hat guy". This makes it hard to perform any actual analysis on this data. However, there are still some interesting things to pull from here. For example we see an entry for 'randall' (the comics' author), let's look into those comics.
 
 ```{r}
 
@@ -292,6 +296,10 @@ xkcd_characters |>
 ```
 This means we have missed 
 
+
+Most of these make sense, he typically makes himself a character when specifically writing comics about his personality or life, however, some are inconsistent. In "The Race", Randall starts in part one by not naming any characters, then the protagonist to "Monrovian Male" to refer to being similar to himself, and finally, in part 4, he just names the character "randall", after himself.
+
+Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
 
 # Sources
 
