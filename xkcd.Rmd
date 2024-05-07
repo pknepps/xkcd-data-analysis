@@ -29,7 +29,12 @@ if (!require("tidyverse")) {
 if (!require("ggwordcloud")) {
     install.packages("ggwordcloud")
 }
+if (!require("MASS")) {
+    install.packages("MASS")
+}
 library("tidyverse")
+library(MASS)
+
 ```
 
 The .csv below contains data on every single xkcd comic. Most importantly, the transcript of every comic. It's a good idea to run the python file, extractDataset.py, before viewing this file for the first time, as a comic is posted three times every week. Monroe offers an API for his comic, which only requires the parsing of jsons into a .csv which R can read.
@@ -290,14 +295,15 @@ black_hat <- xkcd_characters |>
     filter((str_detect(names, "\\bhat\\b") & str_detect(names, "black|man|guy")) | (str_detect(scene, "\\bhat\\b") & str_detect(scene, "black|man|guy"))) |> 
     filter(!str_detect(names, "boy|white")) |> group_by(num, date, weekday, title) |> count()
 nrow(black_hat) / 174
+ncol(black_hat)
 black_hat |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "black") + 
-    labs(title = "Black Hat Man Appearances over time")
+    labs(title = "Black Hat Man Appearances Over Time")
 ```
 ```{r}
 beret <- xkcd_characters |> filter(str_detect(names, "beret") | str_detect(scene, "beret")) |> group_by(num, date, weekday, title) |> count()
 nrow(beret) / 103
 beret |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE) + 
-    labs(title = "Beret Man Appearances over time")
+    labs(title = "Beret Man Appearances Over Time")
 ```
 
 This means we have missed 
@@ -310,11 +316,23 @@ Overall, despite spending a significant portion of time parsing the transcripts,
 ## Comics with no transcripts
 ```{r}
 no_transcript <- xkcd_transcript |> filter(transcript == " NA")
-no_transcript
-no_transcript |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar()
+no_transcript |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE ) + labs(title = "Comics Without Transcripts Over Time")
 no_transcript |> filter(format(date, "%Y") == 2015)
 ```
 
+### Linear Descriminant Analysis (LDA)
+```{r}
+xkcd_for_fit <- (xkcd_transcript |> mutate(has_black_hat = num %in% black_hat$num, has_beret = num %in% beret$num))[1:1500,]
+sample <- sample(1500, 750)
+xkcd_sample <- xkcd_for_fit[sample,]
+xkcd_test <- xkcd_for_fit[-sample,]
+lda.fit <- lda(has_black_hat ~ date, data = xkcd_sample)
+lda.fit
+lda.pred <- predict(lda.fit, data = xkcd_test)
+names(lda.pred)
+lda.class = lda.pred$class
+table(lda.class, xkcd_test$has_black_hat)
+```
 
 # Sources
 

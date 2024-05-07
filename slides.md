@@ -32,7 +32,7 @@ In this project, we take a look at xkcd comics across the life of the webcomic t
 
 # Background
 
-XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The comic i posted regularly on every Monday, Wednesday, and Saturday.
+XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The comic is posted regularly on every Monday, Wednesday, and Friday.
 
 ![bg right:40% 95%](https://imgs.xkcd.com/comics/machine_learning.png)
 
@@ -42,7 +42,7 @@ XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", 
 
 *   Monroe offers a JSON API for his comic.
 *   It should be easy to parse comics into a .csv.
-*   In spite of this, the data was pretty tricky to form into a .csv.
+*   Which turned out to not be true.
     ![bg left:30% 70%](https://imgs.xkcd.com/comics/api.png)
 
 ---
@@ -79,17 +79,17 @@ section {
 ### The transcript and why it's terrible
 ![bg left:33% 100%](https://imgs.xkcd.com/comics/future_self.png)
 *   The transcript is not parse friendly, it includes many commas, quotes, and newlines.
-    *   When R reads a csv (through both read*csv and read.csv), it will parse *\_Every\*\* comma as a new column.
+    *   When R reads a csv (through both read*csv and read.csv), it will parse **Every** comma as a new column.
     *   When R reads a quote, it will try to end it's current value, throwing an error.
     *   When R reads a newline '\n' character, it will immediatly create a new entry in the dataframe.
 
 ---
 
 # Parsing the Data
+xkcd comics transcripts are in theatrical format. Each dialog is on its own line and is preceeded by who is saying it. Our strategy to parse this data will be to search for text on a new like and split the character and their speech by a colon.
+
 
 ---
-
-## Analyzing the problem
 
 Here is an example comic to parse text from:
 
@@ -116,19 +116,16 @@ Beret: The univere is mine to command!\n
 
 ---
 
-* xkcd comics transcripts are in theatrical format. Each dialog is on its own line and is preceeded by who is saying it. Our strategy to parse this data will be to search for text on a new like and split the character and their speech by a colon.
-
-* The easiest way to parse data in this format is to break it down into simpler stages and tackle those one at a time.
+# Parsing Strategy
+We found through trial and error that the easiest way to parse data in this format is to break it down into simpler stages and tackle those one at a time.
 
 ---
-
 ### First Stage - Cleaning text
 <style scoped>
 section {
     list-style-type: none;
 }
 </style>
-First, lets remove the data we do not need
 
 The {{Title Text}} is unecessary since our web scraping script has access to that field already, so we may remove it.
 
@@ -156,8 +153,8 @@ Beret: The univere is mine to command!\n
 
 # `\[\[([^\]]*)\]\]`
 
-*   We use capturing groups and `str_match_all` to select the data inside 2 sets of parentheses
-*   After parsing, we remove this data with `str_remove_all`
+-   We use capturing groups and `str_match_all` to select the data inside 2 sets of parentheses
+-   After parsing, we remove this data with `str_remove_all`
 
 ---
 
@@ -175,12 +172,26 @@ Beret: The univere is mine to command!\n
 
 ---
 
-### Clean up from Stage 2
+### Stage 2.5: Cleaning our mess
 
-Many \n's remain. Furthermore, characters' dialog can span multiple lines.
-We may flatten these into a single pair \n by making a call to `str_replace`, replacing `\n+` with a single `\n`.
+'\n' characters collapse together when removing `[[]]` blocks. 
+* We may flatten these into a '\n' by making a call to `str_replace`, replacing `\n+` with a single `\n`.
 
-However, since newlines can be anywhere in a character's dialog, we can't use a simple regex to parse text.
+---
+```
+\nCueball: What are you doing?\n
+Beret: Trying to unlock the tremendous energy of the vacuum.\n
+Cueball: That's not what that-\n
+Beret: Ha ha! It works!<<BWAROUUGUMHGHHGMMM>>\n
+Cueball: I said, that's-\n
+Beret: The univere is mine to command!\n
+<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
+```
+---
+
+### Last complication
+
+Some comics contain '\n' characters in a character's dialog. This is troublesome since we depend on character dialog separated by new lines.
 
 ---
 
@@ -188,9 +199,9 @@ However, since newlines can be anywhere in a character's dialog, we can't use a 
 
 # `(?:\\n)(?!(?:.(?!\\n))+:)`
 
-*   This regex uses _lookaheads_, a powerful regex feature that will examine the code ahead **without consuming the characters** to make matches
+*   This regex uses _lookaheads_, a powerful regex feature that determines matches without capturing the input.
 
-*   Lookaheads are used to match a select a \n where there is another \n in between it and the next : character
+*   Lookaheads are used to match a select a \n where there is another '\n' in between it and the next ':' character
 
 *   These are removed with a call to `str_remove_all`
 
@@ -239,41 +250,44 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 
 ---
 
-<style scoped>
-img {
-    transform: translateY(120px);
-    scale: 4
-}
-</style>
-### Unparsable comics
-Some comics contain colons in their text body. Since there is no way to distinguish this from a character dialog, we cannot correctly parse these comics.
-
-![non-parsable colon h:300](https://www.explainxkcd.com/wiki/images/2/26/encryptic.png)
-
----
-### Comics With text in Scene Tags
-Some comics, like this one, have no speaker, but still have dialog. This cannot be extracted since the data is contained within the [[]] as scene text.
-
-![text in scene w:1100](https://imgs.xkcd.com/comics/fight.png)
-
----
-
-### Comics with Missing Transcripts
-
-![newlines in dialog w:1100](https://imgs.xkcd.com/comics/open_mic_night.png)
-
----
-### Same Character with Multiple names
+### Inconsistent delimiters
+*   [] instead of [[]]
+*   no starting \n
+*   colons in the text of the comic
+*   Same character with multiple names
 
 ---
 
 # Analysis
-![width:1000px](https://imgs.xkcd.com/comics/self_description.png)
+
+Despite the difficulties, there is still some analysis we can perform.
 
 ---
 
-## Analysis
-
-Despite the information 
+## Black Hat and Beret Man
+![width:600px](pumpkin_carving.png)
 
 ---
+
+### Black Hat and Beret Man
+* Black Hat and Beret are the two most consitant characters in the comic. 
+* They are the easiest to parse from the transcript.
+    * Some combination of 'Black' and 'Hat' or 'Beret' in the transcript.
+* Lets look at there appearances over time. Look if you see anything wrong.
+
+---
+
+![bg left:100% 100%](black_hat.png) ![bg right:100% 100%](beret.png)
+
+---
+
+## Missing Transcripts
+
+* It seems that the appearances of both characters seem to cut off after 2015, however, a quick search through the site tells us that this is wrong.
+* What actually happened, however, is Munroe stopped writing transcripts for his comics starting late 2015.
+* This trend went into full effect in 2016.
+
+![bg left:40% 100%](missing.png)
+
+---
+
