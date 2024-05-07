@@ -143,7 +143,7 @@ parse_dialog <- function(dialog) {
     s <- scene_info |> map(\(x) reduce(x[,2], paste, .init="")) |> unlist()
     data.frame(names = n, dialog= d, scene=s)
 }
-# sample <- xkcd |> sample_n(10) |> pull(transcript)
+xkcd_sample <- xkcd |> sample_n(10) |> pull(transcript)
 ```
 
 
