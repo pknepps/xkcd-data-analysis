@@ -26,7 +26,7 @@ section {
 # Introduction
 
 ![bg left 95%](https://imgs.xkcd.com/comics/data_trap.png)
-In this project, we take a look at xkcd comics across the life of the webcomic to find interesting paternand abnormalities, as well as challenge our abilities to parse and clean data which was never meant to be studied.
+In this project, we take a look at xkcd comics across the life of the webcomic to find interesting patterns and abnormalities, as well as challenge our abilities to parse and clean data which was never meant to be studied.
 
 ---
 
@@ -82,6 +82,14 @@ section {
     *   When R reads a csv (through both read*csv and read.csv), it will parse **Every** comma as a new column.
     *   When R reads a quote, it will try to end it's current value, throwing an error.
     *   When R reads a newline '\n' character, it will immediatly create a new entry in the dataframe.
+
+---
+
+# Parsing the Transcript
+* Handling the transcript ended up being the bane of our project.
+* Several regex's were used to try to parse information from the transcript.
+
+![width:700px](https://imgs.xkcd.com/comics/perl_problems.png)
 
 ---
 
@@ -245,22 +253,21 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 
 ---
 
-## Issues
-![width:900px](https://imgs.xkcd.com/comics/flawed_data.png)
-
----
-
 ### Inconsistent delimiters
 *   [] instead of [[]]
 *   no starting \n
 *   colons in the text of the comic
 *   Same character with multiple names
+*   More coming up.
 
 ---
 
 # Analysis
 
-Despite the difficulties, there is still some analysis we can perform.
+* Despite the difficulties, there is still some analysis we can perform.
+* We now have a list of characters in each comic, so lets work with it.
+
+![width:600px](https://imgs.xkcd.com/comics/flawed_data.png)
 
 ---
 
@@ -287,7 +294,7 @@ Despite the difficulties, there is still some analysis we can perform.
 * What actually happened, however, is Munroe stopped writing transcripts for his comics starting late 2015.
 * This trend went into full effect in 2016.
 
-![bg left:40% 100%](missing.png)
+![bg left:30% 100%](missing.png)
 
 ---
 
