@@ -58,65 +58,28 @@ From the summary, we get information on the metadata of the comic. A comic has t
 
 # Cleaning the data
 
-The first thing to do is to convert the three separate attributes year, month, day into a single value date_posted. It will also be useful to add a day_of_week attribute, which includes the day of the week the comic was posted. The day of the week will probably be more useful than just the date as the comic is posted regularly on mondays, wednesdays, and fridays.
+The first thing to do is to convert the three separate attributes year, month, day into a single value date_posted. It will also be useful to add a day_of_week attribute, which includes the day of the week the comic was posted. The day of the week will probably be more useful than just the date as the comic is posted regularly on Mondays, Wednesdays, and Fridays.
 
 ```{r date_parse}
 xkcd_date <- xkcd |> unite(date, month, day, year, sep = "-") |> mutate(date = as.Date(mdy(date))) |> mutate(weekday = wday(date, label = TRUE),.after = date)
+get_year <- function(x) {
+    return(format(x, "%Y"))
+}
 ```
 Another thing to note is that the transcript includes a physical description of the comic itself. Sorry blind readers, but we do not care for this. We will remove these parts using regex's. Note Image descriptors are wrapped in "[[]]". Note that the alt text is also included here (wrapped in "\{\{\}\}"), since there is already a section for alt text, we will remove it. The final part to remove are the screenplay names (e.g. "Man:", "Woman:") as they only indicate who is speaking, and are not part of the actual text of the comic.
 
+## Parsing the transcript
+
+![I_Know_Regular_Expressions](https://xkcd.com/s/0b7742.png)
 
 Okay, time to tidy transcript.
 
 There are 2 challenges in doing this 
-- scenebuilding is described in [[]]
+- scene-building is described in [[]]
 - Dialogue is in the format Person: says something (we thought)
 
-
-## Parsing the [[scenebuilding]]
-![I_Know_Regular_Expressions](https://xkcd.com/s/0b7742.png)
-
-This was fairly simple, we used stringr and str_match_all to separate the text inside the double square brackets
-our regex ended up like this: \\[\\[([^\\]]*)\\]\\]
-- \\[\\[
-    - \\[ matches a left square bracket, so this pattern matches [[
-
-- \\([^\\]]*)
-    - The capturing group is created with the ()
-    - Inside the capturing group, we have [^\\]]*
-        -The * matches the the previous item, [^\\]] 0 or more times
-            - This is a negative scanset, matching character that are not contained in it
-            - This will not match the ] character, 
-    - This uses a capturing group to match characters that are not a ]
-
-- \\]\\]
-    - Like the beginning, this matches ]]
-
-## Parsing the Character: Dialog
-![regex_problems](https://imgs.xkcd.com/comics/perl_problems_2x.png)
-
-### pain: 1st attempt: `regex(r"{(?m)^(\w+):([^\n]*)}", multiline = TRUE)`
-
-### Realization
-Upon testing with sample data:
-`" \"[[A boy sits in a barrel which is floating in an ocean.]]\\nBoy: I wonder where I'll float next?\\n[[The barrel drifts into the distance. Nothing else can be seen.]]\\n{{Alt: Don't we all.}}\""`
-Upon doing a stringview, I noticed that "\n" was actually "\\n". Thus multiline regexes were useless!
-
-### redemption
-New regex: `str_match_all(test, r"{(?:\\n)?(\w+): ((?:.(?!\\n))+).\\n}")`
-
-#### Regex negative lookahead
-
-#### Non capturing groups
-`(?:\\n)?(\w+): ((?:.(?!(?:\\n)?\w+:|\Z|\[|\{))*)(?:\\n\\?)*`
-
-# Troublesome comics
-785
-992, 1286 - non parsable colons
-340 - text in scene
-2279, 1850 - no transcript
-
-
+We will now remove the alt text, scene-building, and extra new lines. Then we divide the remaining transcript into a matrix where the 2 columns are [character, dialog]. Then we reduce the matrices into two values of [characters, text], and turn the total list of values into a dataframe.
+This will be done using regular expressions. The expressions are all strings starting in 'r' below, with their variable names giving their respective parsing.
 
 ```{r dialog_parse_fn}
 view_xkcd_string <- function(strin) {
@@ -144,9 +107,9 @@ parse_dialog <- function(dialog) {
     s <- scene_info |> map(\(x) reduce(x[,2], paste, .init="")) |> unlist()
     data.frame(names = n, dialog= d, scene=s)
 }
-xkcd_sample <- xkcd |> sample_n(10) |> pull(transcript)
 ```
 
+We now need to just concatenate the new dataframe onto our data.
 
 ```{r dialog_parse}
 xkcd_comma <- xkcd_date |> mutate(transcript = transcript |> str_replace_all("\\(COMMA\\)", ","))
@@ -162,7 +125,7 @@ head(xkcd_transcript)
 The first thing we can analyze without any data manipulation is the frequency of comics across each year and weekday.
 ```{r comicsByYear}
 # we extract the year from the given date by using format(date), "%y"
-xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "brown") + labs(title = "Number of Comics Posted by Year")
+xkcd_date |> mutate(year = get_year(date)) |> ggplot(aes(year)) + geom_bar(fill = "brown") + labs(title = "Number of Comics Posted by Year")
 ```
 ```{r comicsByWeekday}
 # graph for posts by day of the week
@@ -171,7 +134,7 @@ xkcd_date |> ggplot(aes(weekday)) + geom_bar(fill = "brown") + labs(title = "Num
 
 As we see, the yearly posts are pretty consistent. While 2024 provides no significance (as the year is not complete), 2006 does. We can investigate.
 ```{r 2006}
-xkcd_date |> filter(format(date, "%Y") == "2006") |> group_by(date) |> count() |> arrange(desc(n)) |> head()
+xkcd_date |> filter(get_year(date) == "2006") |> group_by(date) |> count() |> arrange(desc(n)) |> head()
 ```
 We can see here that Munroe posted 44 comics on January 1, 2006. Which is the day xkcd was started. To quote Munroe at this time, "I was going through old math/sketching graph paper notebooks and didn't want to lose some of the work in them, so I started scanning pages. I took the more comic-y ones and put them up on a server I was testing out."
 
@@ -182,11 +145,11 @@ xkcd_date_abnormal |> group_by(weekday) |> count()
 ```
 So 3 of the sunday comics were not posted on the first day. Meaning we have 34 abnormal posts. Lets narrow down the time of theses abnormalities a bit further.
 ```{r more_unusual_dates}
-xkcd_date_abnormal |> group_by(format(date, "%Y"), weekday) |> count()
+xkcd_date_abnormal |> group_by(get_year(date), weekday) |> count()
 ```
 It is not a surprise to see that the majority of date abnormalities are in 2006, when the comic was not full-time. For interest's sake, here are a few of the later comics which were abnormal.
 ```{r list_of_unusual_comics}
-(xkcd_date_abnormal |> filter(format(date, "%Y") > 2018))[c(1:4, 8:10)]
+(xkcd_date_abnormal |> filter(get_year(date) > 2018))[c(1:4, 8:10)]
 ```
 <p float="left">
     <img src="https://imgs.xkcd.com/comics/throw.png" alt="throw" width="19%"/>
@@ -222,10 +185,13 @@ Lets look at how frequent these comics were over time.
 ```{r}
 special_union |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "orange") + labs(title = "Comics with Unique Properties by Year")
 ```
+
+Here's how frequent each attribute was over time.
+
 ```{r, figures-side, fig.show="hold", out.width="33%"}
-specialComics |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "red") + labs(title = "Special Comics by Year")
-hasLink |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "green") + labs(title = "Comics with Links by Year")
-hasNews |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "blue") + labs(title = "Comics with News by Year")
+specialComics |> mutate(year = get_year(date)) |> ggplot(aes(year)) + geom_bar(fill = "red") + labs(title = "Special Comics by Year")
+hasLink |> mutate(year = get_year(date)) |> ggplot(aes(year)) + geom_bar(fill = "green") + labs(title = "Comics with Links by Year")
+hasNews |> mutate(year = get_year(date)) |> ggplot(aes(year)) + geom_bar(fill = "blue") + labs(title = "Comics with News by Year")
 ```
 We see here that the majority of the comics with extra features peaked around 2012, and had a spike in 2022. This is true for the individual properties as well, with the exception that news did not have a spike in 2022.
 
@@ -265,7 +231,7 @@ Let's now look at the most common character's in the comic.
 ```{r}
 xkcd_characters <- xkcd_transcript |> separate_longer_delim(names, delim = "|||") |> mutate(names = str_squish(names) |> tolower() |> na_if("")) |> filter(!is.na(names))
 character_freq <- xkcd_characters |> group_by(names) |> count() |> arrange(desc(n))
-character_freq
+head(character_freq)
 black_hat_guys <- character_freq |> filter(str_detect(names, ".*hat.*")) |> filter(str_detect(names, ".*black.*")); black_hat_guys
 black_hat_guys |> ungroup() |> summarize(black_hat_count = sum(n))
 ```
@@ -283,9 +249,7 @@ According to the wiki https://www.explainxkcd.com/wiki/index.php/Black_Hat, Blac
 black_hat <- xkcd_characters |>
     filter((str_detect(names, "\\bhat\\b") & str_detect(names, "black|man|guy")) | (str_detect(scene, "\\bhat\\b") & str_detect(scene, "black|man|guy"))) |> 
     filter(!str_detect(names, "boy|white")) |> group_by(num, date, weekday, title) |> count()
-nrow(black_hat) / 174
-ncol(black_hat)
-black_hat |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "black") + 
+black_hat |> mutate(year = get_year(date)) |> ggplot(aes(year)) + geom_bar(fill = "black") + 
     labs(title = "Black Hat Man Appearances Over Time")
 ```
 
@@ -293,8 +257,7 @@ We see a general downward trend. This makes sense as Black Hat was an early char
 
 ```{r}
 beret <- xkcd_characters |> filter(str_detect(names, "beret") | str_detect(scene, "beret")) |> group_by(num, date, weekday, title) |> count()
-nrow(beret) / 103
-beret |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE) + 
+beret |> mutate(year = get_year(date)) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE) + 
     labs(title = "Beret Man Appearances Over Time")
 ```
 
@@ -303,13 +266,17 @@ With Beret man, we see a reverse trend over Black Hat. Beret man is one of Munro
 ## Comics with no transcripts
 ```{r}
 no_transcript <- xkcd_transcript |> filter(transcript == " NA")
-no_transcript |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE ) + labs(title = "Comics Without Transcripts Over Time")
-no_transcript |> filter(format(date, "%Y") == 2015)
+no_transcript |> mutate(year = get_year(date)) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE ) + labs(title = "Comics Without Transcripts Over Time")
+no_transcript |> filter(get_year(date) == 2015)
+nrow(no_transcript) / nrow(xkcd)
 ```
 
-Turns out, Munroe stopped writing transcripts in 2016, not a single transcript was missed until 2015. Then the transcripts stopped overall. This was a very unfortunate surprise to our already unfortunate experience parsing the transcript. However, we still have data from the first 10 years of the comic.
+Turns out, Munroe stopped writing transcripts in 2016, not a single transcript was missed until 2015. Then the transcripts stopped overall. This was a very unfortunate surprise to our already unfortunate experience parsing the transcript. This is about 43% of the database missing transcripts. However, we still have data from the first 10 years of the comic.
 
 ### Linear Descriminant Analysis (LDA)
+
+Linear Descriminant analysis allows us to create a model which will determine likelyhood of a catagorical variable. In this case, we are trying to predict if Black Hat is in a comic or not.
+
 ```{r}
 xkcd_for_fit <- (xkcd_transcript |> mutate(has_black_hat = num %in% black_hat$num, has_beret = num %in% beret$num))[1:1500,]
 sample <- sample(1500, 750)
@@ -322,6 +289,8 @@ names(lda.pred)
 lda.class = lda.pred$class
 table(lda.class, xkcd_test$has_black_hat)
 ```
+
+This didn't end up working as the model always chose false.
 
 ### Word Clouds
 
@@ -357,6 +326,7 @@ all_words_tibble |>
 ```
 
 # Conclusion
+
 Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
 
 # Sources
