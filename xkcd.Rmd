@@ -12,7 +12,7 @@ knitr::opts_chunk$set(warning = FALSE)
 
 # Introdution
 
-In this study, we will analyze commonalities and frequencies of various items in the xkcd. XKCD is a web comic written by Randall Munroe, a CNU graduate with a degree in physics. Before writing comics full time, he previously had worked on robotics at NASA.
+In this study, we will analyze commonalities and frequencies of various items in the xkcd. XKCD is a web comic written by Randall Munroe, a CMU graduate with a degree in physics. Before writing comics full time, he previously had worked on robotics at NASA.
 
 XKCD refers to itself as "A web-comic of romance, sarcasm, math, and language", taking its roots in nerdy humor typically about technology, math, physics and science. XKCD is popular in the world covered by those topics. The chances of you being in this class (Math 474) and never seeing an xkcd comic are slim to none. The comic was originally started on LiveJournal on September 30, 2005, with an upload of 13 images. It quickly gain popularity and it was moved to his own server, xkcd.com, on January 1, 2006. Since then, the comic has been posted regularly on every Monday, Wednesday, and Saturday. 
 
@@ -34,6 +34,7 @@ if (!require("MASS")) {
 }
 library("tidyverse")
 library(MASS)
+library(ggwordcloud)
 
 ```
 
@@ -322,6 +323,40 @@ lda.class = lda.pred$class
 table(lda.class, xkcd_test$has_black_hat)
 ```
 
+### Word Clouds
+
+```{r wordclouds}
+parsed_comic <- xkcd_comma |> pull(transcript) |> parse_dialog()
+words <- parsed_comic$scene |> append(parsed_comic$dialog)
+head(words)
+tail(words)
+all_words <- lapply(words, \(x) str_split(x, r"{\s+|<[^>]*>+|\\n|[\\\/\~\@\#\$\%\^\&\*\(\)\-\_\=\+\[\]\}\{\,\.\?\/\'\"\;\:\|\>\<]}", simplify = TRUE))
+all_words <- unlist(all_words)
+all_words <- all_words[all_words != "" | all_words != "NA"]
+
+all_words
+all_words_tibble <- tibble(words=all_words)
+all_words_tibble <- all_words_tibble |> group_by(words) |> summarise(word_count=n()) |> arrange(desc(word_count))
+all_words_over_100 <- all_words_tibble |> filter(word_count > 100)
+
+set.seed(42)
+# The most common words
+ggplot(all_words_over_100, aes(label = words, size = word_count)) +
+  geom_text_wordcloud() +
+  theme_minimal()
+
+
+# Random sample of words
+
+all_words_tibble |>
+    sample_n(100, weight = word_count) |>
+    ggplot(aes(label=words, size=word_count)) +
+    geom_text_wordcloud() +
+    theme_minimal()
+
+```
+
+# Conclusion
 Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
 
 # Sources
