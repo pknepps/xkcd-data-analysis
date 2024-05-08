@@ -161,11 +161,11 @@ head(xkcd_transcript)
 The first thing we can analyze without any data manipulation is the frequency of comics across each year and weekday.
 ```{r comicsByYear}
 # we extract the year from the given date by using format(date), "%y"
-xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Number of Comics Posted by Year")
+xkcd_date |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "brown") + labs(title = "Number of Comics Posted by Year")
 ```
 ```{r comicsByWeekday}
 # graph for posts by day of the week
-xkcd_date |> ggplot(aes(weekday)) + geom_bar() + labs(title = "Number of Comics Posted by Weekday")
+xkcd_date |> ggplot(aes(weekday)) + geom_bar(fill = "brown") + labs(title = "Number of Comics Posted by Weekday")
 ```
 
 As we see, the yearly posts are pretty consistent. While 2024 provides no significance (as the year is not complete), 2006 does. We can investigate.
@@ -219,18 +219,18 @@ So there are 23 special comics. 54 comics with news announced, and 72 comics whi
 Lets look at how frequent these comics were over time.
 
 ```{r}
-special_union |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with Unique Properties by Year")
+special_union |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "orange") + labs(title = "Comics with Unique Properties by Year")
 ```
 ```{r, figures-side, fig.show="hold", out.width="33%"}
-specialComics |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Special Comics by Year")
-hasLink |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with Links by Year")
-hasNews |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar() + labs(title = "Comics with News by Year")
+specialComics |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "red") + labs(title = "Special Comics by Year")
+hasLink |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "green") + labs(title = "Comics with Links by Year")
+hasNews |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "blue") + labs(title = "Comics with News by Year")
 ```
 We see here that the majority of the comics with extra features peaked around 2012, and had a spike in 2022. This is true for the individual properties as well, with the exception that news did not have a spike in 2022.
 
 Lets go back a bit to where we analyzed the comics that were posted on Tuesdays and Thursdays. We can try to prove our hypothesis that most of these are our special comics. 
 ```{r}
-special_union |> ggplot(aes(weekday)) + geom_bar() + labs(title = "Comics with Unique Properties by Weekday")
+special_union |> ggplot(aes(weekday)) + geom_bar(fill = "purple") + labs(title = "Comics with Unique Properties by Weekday")
 nrow(union(special_union, xkcd_date_abnormal))
 nrow(intersect(special_union, xkcd_date_abnormal)) / nrow(xkcd_date_abnormal)
 nrow(special_union) / nrow(xkcd)
@@ -323,6 +323,7 @@ table(lda.class, xkcd_test$has_black_hat)
 ```
 
 Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
+
 # Sources
 
 - xkcd.com
