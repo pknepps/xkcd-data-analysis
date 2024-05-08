@@ -150,14 +150,6 @@ xkcd_sample <- xkcd |> sample_n(10) |> pull(transcript)
 
 ```{r dialog_parse}
 xkcd_comma <- xkcd_date |> mutate(transcript = transcript |> str_replace_all("\\(COMMA\\)", ","))
-# 
-# mutate_and_parse = function(df) {
-#     split_transcript = df$transcript |> parse_dialog() |> map(as.data.frame)
-#     speakers = split_transcript |> map(\(x) reduce(x$V2, paste, .init = "")) |> unlist()
-#     script = split_transcript |> map(\(x) reduce(x$V3, paste, .init = "")) |> unlist()
-#     return(data.frame(speakers, script))
-# }
-
 
 xkcd_transcript <- xkcd_comma |> cbind(xkcd_comma |> pull(transcript) |> parse_dialog())
 head(xkcd_transcript)
@@ -280,10 +272,6 @@ black_hat_guys |> ungroup() |> summarize(black_hat_count = sum(n))
 
 Most of these names are generic (man, woman, etc.). However, the notable character's within the top 20 are 'Black Hat Guy' and 'Beret Guy'. As mentioned earlier, these characters have the most consistent personality and are some of the favorite characters of the comic. Otherwise, it seems that the naming of characters is very inconsistent, with seven different entries for 'Black Hat Guy' in the first 150 most common character names: "man in black hat", "guy with hat", "black hat", "black hat man", "hat man", "black hat guy", "hat guy". This makes it hard to perform any actual analysis on this data. However, there are still some interesting things to pull from here. For example we see an entry for 'randall' (the comics' author), let's look into those comics.
 
-```{r}
-
-```
-
 
 Let's see how good of a job we did parsing the comics.
 
@@ -300,6 +288,9 @@ ncol(black_hat)
 black_hat |> mutate(year = format(date, "%Y")) |> ggplot(aes(year)) + geom_bar(fill = "black") + 
     labs(title = "Black Hat Man Appearances Over Time")
 ```
+
+We see a general downward trend. This makes sense as Black Hat was an early character who had most repetitive appearances during the early years of the comic. However, we notice that his appearances just cut off after 2016. However, we see Black Hat recently in comic 2900: Call My Cell on February 28, 2024. A look at this comic shows that there is no transcript. Interesting.
+
 ```{r}
 beret <- xkcd_characters |> filter(str_detect(names, "beret") | str_detect(scene, "beret")) |> group_by(num, date, weekday, title) |> count()
 nrow(beret) / 103
@@ -307,12 +298,7 @@ beret |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + g
     labs(title = "Beret Man Appearances Over Time")
 ```
 
-This means we have missed 
-
-
-Most of these make sense, he typically makes himself a character when specifically writing comics about his personality or life, however, some are inconsistent. In "The Race", Randall starts in part one by not naming any characters, then the protagonist to "Monrovian Male" to refer to being similar to himself, and finally, in part 4, he just names the character "randall", after himself.
-
-Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
+With Beret man, we see a reverse trend over Black Hat. Beret man is one of Munroe's favorite characters, so the slow increase in appearances makes sense. Once again, though, we see a sudden cutoff of appearances after 2015. Investigating again we see missing transcripts.
 
 ## Comics with no transcripts
 ```{r}
@@ -320,6 +306,8 @@ no_transcript <- xkcd_transcript |> filter(transcript == " NA")
 no_transcript |> mutate(year = format(date, "%Y")) |> ggplot(aes(year, fill = year)) + geom_bar(show.legend = FALSE ) + labs(title = "Comics Without Transcripts Over Time")
 no_transcript |> filter(format(date, "%Y") == 2015)
 ```
+
+Turns out, Munroe stopped writing transcripts in 2016, not a single transcript was missed until 2015. Then the transcripts stopped overall. This was a very unfortunate surprise to our already unfortunate experience parsing the transcript. However, we still have data from the first 10 years of the comic.
 
 ### Linear Descriminant Analysis (LDA)
 ```{r}
@@ -368,7 +356,8 @@ all_words_tibble |>
 
 ```
 
-
+# Conclusion
+Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
 # Sources
 
 - xkcd.com

@@ -309,8 +309,7 @@ The univere is mine to command!<<GLHDFKUOUAHUUUUGUUUAAAUUAUUUUUUUGGGGGH>>
 * Parsing english is _Hard_.
     * Most problems came from the difficulty to distinguish from a phrase and a name, especially when names are made from descriptors.
 * The transcript was never meant to be analyzed, and as such, it was very inconsistent in delimiters, naming, and overall structure.
-    * We think this was most likely due to the rise of popularity of the xkcd wiki, explainxkcd.
-* Regexes are extremely versatie and powerful, but are not a substitute for well structured data.
+* Regexes are extremely versatile and powerful, but are not a substitute for well structured data.
 
 ---
 
