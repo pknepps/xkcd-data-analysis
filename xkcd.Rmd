@@ -348,20 +348,55 @@ table(lda.class, xkcd_test$has_black_hat)
 
 ### Word Clouds
 
+Words clouds are a good way to visualize trends in categorical variables. Here are word clouds summarizing
+the data from XKCD.
+
 ```{r wordclouds}
 parsed_comic <- xkcd_comma |> pull(transcript) |> parse_dialog() |> tibble()
 
 remove_characters_regex <- r"{\s+|<[^>]*>+|\\n|[\\\/\~\@\#\$\%\^\&\*\(\)\-\_\=\+\[\]\}\{\,\.\?\/\"\;\:\|\>\<\!]}"
 
+set.seed(42)
+
+# Top 10 most frequent characters in the dataset
+top_10_characters <- xkcd_characters |>
+  group_by(names) |>
+  count(names) |>
+  arrange(desc(n)) |>
+  head(10)
+
 words_said <- xkcd_characters |>
   dplyr::select(c(num, names, date, dialog)) |>
   mutate(dialog=tolower(dialog)) |>
   separate_longer_delim(dialog, regex(remove_characters_regex)) |>
-  filter(dialog != "" & dialog != "na")
+  filter(dialog != "" & dialog != "na") |>
+  rename(words=dialog)
 
-words_total <- parsed_comic$scene |> tolower() |> append(parsed_comic$dialog |> tolower())
-all_words <- lapply(words_total, \(x) str_split(x, remove_characters_regex, simplify = TRUE))
-all_words <- unlist(all_words)
+word_distribution <- words_said |>
+  group_by(words) |>
+  summarise(word_count=n()) |> 
+  mutate(dist = cume_dist(word_count)); word_distribution
+
+character_words_said <- words_said |> 
+  semi_join(top_10_characters, join_by(names)) |>
+  group_by(names, words) |>
+  summarise(word_count=n()) |>
+  mutate(rank = dense_rank(desc(word_count)),
+         dist = cume_dist(word_count)); character_words_said
+
+character_unusual_words <- character_words_said |>
+  inner_join(word_distribution, join_by(words)) |>
+  mutate(percent_difference = (dist.x-dist.y) / dist.y) |>
+  filter(percent_difference > .5) |>
+  mutate(rank = dense_rank(desc(percent_difference))) |>
+  arrange(rank)
+character_unusual_words
+
+all_words <- parsed_comic$scene |>
+  tolower() |>
+  append(parsed_comic$dialog |> tolower()) |>
+  lapply(\(x) str_split(x, remove_characters_regex, simplify = TRUE)) |>
+  unlist()
 all_words <- all_words[all_words != "" & all_words != "na"]
 
 all_words_tibble <- tibble(words=all_words) |>
@@ -369,7 +404,7 @@ all_words_tibble <- tibble(words=all_words) |>
   summarise(word_count=n()) |> 
   arrange(desc(word_count))
 
-set.seed(42)
+
 # The most common words
 all_words_tibble |>
   filter(word_count > 100) |>
@@ -378,14 +413,40 @@ all_words_tibble |>
   scale_size_area(max_size = 30) +
   theme_minimal()
 
-
 # Random sample of words
-all_words_tibble |> 
+all_words_tibble |>
     sample_n(100, weight = word_count) |>
     ggplot(aes(label=words, size=word_count)) +
     geom_text_wordcloud() +
     scale_size_area(max_size = 30) +
     theme_minimal()
+
+
+character_words_said |>
+  filter(rank <= 20) |>
+  ggplot(aes(label = words, size = word_count)) +
+  geom_text_wordcloud() +
+  facet_wrap(~names) +
+  scale_size_area(max_size = 12) +
+  theme_minimal() +
+  labs(title="Top 20 words said by each character")
+
+top_10_characters
+
+for (character in top_10_characters |> pull(names)) {
+  plot <- character_unusual_words |>
+    ungroup() |>
+    filter(names==character) |>
+    slice_head(n=20) |>
+    ggplot(aes(label = words, size = percent_difference)) +
+    geom_text_wordcloud() +
+    # scale_size_area(max_size = 5) +
+    theme_minimal() +
+    labs(title=paste("Unusual words for ", character), subtitle = "Words that are 50% more unlikely compared to the overall words")
+  print(plot)
+}
+
+
 
 ```
 
