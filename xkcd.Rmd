@@ -421,7 +421,7 @@ for (character in top_10_characters |> pull(names)) {
 
 # Conclusion
 
-Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yeilded inconsistencies.
+Overall, despite spending a significant portion of time parsing the transcripts, we found very little accurate information. This is mostly due to the inconsistencies from the transcript. These include the fact that parsing the character names would also pull any text which was followed with a ':'. Unfortunately, there isn't a way around this besides separating the transcripts of all 2900+ comics by hand. Another problem, as mentioned previously, is that the naming of characters is extremely inconsistent, making grouping by characters extremely ineffective. some comics didn't even have transcript when they should have, leaving the entry blank. Overall, the transcripts were inconsistent and not ready for data analysis, and even after considerable amounts of cleaning, still yielded inconsistencies.
 
 # Sources
 
